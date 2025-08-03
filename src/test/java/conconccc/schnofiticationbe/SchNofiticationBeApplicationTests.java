@@ -1,0 +1,13 @@
+package conconccc.schnofiticationbe;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class SchNofiticationBeApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}
