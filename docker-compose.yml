@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  app:
-    image: sch-notification-be:latest
-    container_name: sch-notification-be
+  soonrimi-app:
+    image: soonrimi-be:latest
+    container_name: soonrimi-be
     ports:
       - "7000:7000"
     environment:
