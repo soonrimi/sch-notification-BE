@@ -104,6 +104,6 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker run --rm -d --name test-container -p 7000:7000 sch-notification-be:latest
+          docker run --rm -d --name test-container -p 7100:7100 sch-notification-be:latest
           sleep 10
           docker stop test-container

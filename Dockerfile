@@ -18,5 +18,5 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 애플리케이션 실행
-EXPOSE 7000
+EXPOSE 7100
 ENTRYPOINT ["java", "-jar", "app.jar"]
