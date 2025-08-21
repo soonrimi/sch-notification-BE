@@ -44,6 +44,8 @@ public class NoticeService {
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
 
+        Notice savedNotice = noticeRepository.save(notice);
+
         // 2. 첨부파일 같이 저장
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
