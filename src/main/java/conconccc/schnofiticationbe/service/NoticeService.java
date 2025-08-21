@@ -6,6 +6,7 @@ import conconccc.schnofiticationbe.entity.Attachment;
 import conconccc.schnofiticationbe.entity.Notice;
 import conconccc.schnofiticationbe.repository.AdminRepository;
 import conconccc.schnofiticationbe.repository.AttachmentRepository;
+
 import conconccc.schnofiticationbe.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,11 +39,10 @@ public class NoticeService {
         notice.setContent(req.getContent());
         notice.setCreatedAt(LocalDateTime.now());
         notice.setViewCount(0);
+
         notice.setSource("admin");
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
-
-        Notice savedNotice = noticeRepository.save(notice);
 
         // 2. 첨부파일 같이 저장
         if (files != null && !files.isEmpty()) {
@@ -71,6 +71,7 @@ public class NoticeService {
                 lower.endsWith(".pdf") || lower.endsWith(".docx") ||
                 lower.endsWith(".hwp") || lower.endsWith(".zip") ||
                 lower.endsWith(".xlsx") || lower.endsWith(".jpeg");
+
     }
 
     private String saveFile(MultipartFile file) {
@@ -84,6 +85,7 @@ public class NoticeService {
             String uploadDir = System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
 
             // uploads 폴더 만약 없으면 자동 추가
+
             File dir = new File(uploadDir);
             if (!dir.exists()) dir.mkdirs();
 
@@ -92,6 +94,7 @@ public class NoticeService {
             file.transferTo(dest);
 
             // DB에는 URL 경로 저장 (WebConfig와 매핑되는 /uploads/**)
+
             return "/uploads/" + fileName;
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패", e);
@@ -114,5 +117,6 @@ public class NoticeService {
         notice.setViewCount(notice.getViewCount() + 1); // 조회수 증가
         Notice saved = noticeRepository.save(notice);
         return new NoticeDto.Response(saved);
+
     }
 }

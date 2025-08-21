@@ -1,6 +1,7 @@
 package conconccc.schnofiticationbe.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import conconccc.schnofiticationbe.dto.AdminDto;
 import conconccc.schnofiticationbe.dto.NoticeDto;
 import conconccc.schnofiticationbe.entity.Admin;
@@ -73,4 +74,5 @@ public class AdminController {
             throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
         }
     }
+
 }
