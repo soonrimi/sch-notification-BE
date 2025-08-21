@@ -14,11 +14,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/health")
 @Tag(name = "Health Check", description = "서버 상태 확인 API")
 public class HealthController {
 
-    @GetMapping("/health")
+    @GetMapping("/")
     @Operation(summary = "서버 상태 확인", description = "서버가 정상적으로 실행 중인지 확인합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "서버 정상 동작")
