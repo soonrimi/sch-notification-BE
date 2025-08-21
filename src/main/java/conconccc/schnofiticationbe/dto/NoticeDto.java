@@ -31,7 +31,6 @@ public class NoticeDto {
             this.fileUrl = a.getFileUrl();
         }
 
-        private String fileUrl;
     }
 
     @Getter
