@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,10 +28,12 @@ public class Notice {
 
     private LocalDateTime createdAt; // 등록일
     private int viewCount; // 조회수
-    private String fileUrl; // 첨부파일
     private String source; // 출처 구분: "admin", "school", "club", "kakao"
 
     private String targetYear;  // "1,2,3,전체"
     private String targetDept;  // "컴퓨터공학과, 전체"
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments = new ArrayList<>();
 }
 

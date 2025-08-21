@@ -1,5 +1,6 @@
 package conconccc.schnofiticationbe.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import conconccc.schnofiticationbe.dto.AdminDto;
 import conconccc.schnofiticationbe.dto.NoticeDto;
 import conconccc.schnofiticationbe.entity.Admin;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -57,13 +59,18 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/notices")
+    @PostMapping("/notice")
     public ResponseEntity<NoticeDto.Response> createNotice(
             @RequestParam Long adminId,
-            @RequestPart("notice") NoticeDto.CreateRequest req,
-            @RequestPart(value = "file", required = false) MultipartFile file
+            @RequestPart("notice") String noticeJson,
+            @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
-        return ResponseEntity.ok(noticeService.createNotice(adminId, req, file));
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            NoticeDto.CreateRequest req = mapper.readValue(noticeJson, NoticeDto.CreateRequest.class);
+            return ResponseEntity.ok(noticeService.createNotice(adminId, req, files));
+        } catch (Exception e) {
+            throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
+        }
     }
-
 }
