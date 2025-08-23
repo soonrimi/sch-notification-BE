@@ -53,4 +53,11 @@ public class BoardController {
         return ResponseEntity.ok(board);
     }
 
+    @GetMapping("/departments")
+    @Operation(summary = "학과명 조회", description = "중복을 제거한 학과명을 조회합니다.")
+    public ResponseEntity<List<String>> getDistinctTitles() {
+        List<String> titles = boardService.getDistinctTitles();
+        return ResponseEntity.ok(titles);
+    }
+
 }

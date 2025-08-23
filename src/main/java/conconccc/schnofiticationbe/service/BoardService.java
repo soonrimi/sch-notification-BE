@@ -6,6 +6,7 @@ import conconccc.schnofiticationbe.entity.Attachment;
 import conconccc.schnofiticationbe.entity.Board;
 import conconccc.schnofiticationbe.repository.AttachmentRepository;
 import conconccc.schnofiticationbe.repository.BoardRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,13 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."));
         return new BoardDto.Response(board);
+    }
+    /**
+     * 학과명 중복 제거 조회
+     */
+    @Transactional
+    public List<String> getDistinctTitles() {
+        return boardRepository.findDistinctTitleBy();
     }
 
 }
