@@ -46,6 +46,11 @@ public class NoticeService {
 
         // 2. 첨부파일 같이 저장
         if (files != null && !files.isEmpty()) {
+            System.out.println("업로드된 파일 개수: " + files.size());
+            for (MultipartFile f : files) {
+                System.out.println("파일 이름: " + f.getOriginalFilename());
+            }
+
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String fileUrl = saveFile(file);
@@ -114,5 +119,9 @@ public class NoticeService {
         notice.setViewCount(notice.getViewCount() + 1); // 조회수 증가
         Notice saved = noticeRepository.save(notice);
         return new NoticeDto.Response(saved);
+    }
+
+    public List<Notice> searchNotices(String keyword) {
+        return noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword);
     }
 }

@@ -24,4 +24,9 @@ public class NoticeController {
     public ResponseEntity<NoticeDto.Response> getNotice(@PathVariable Long id) {
         return ResponseEntity.ok(noticeService.getNotice(id));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Notice>> searchNotices(@RequestParam String keyword) {
+        return ResponseEntity.ok(noticeService.searchNotices(keyword));
+    }
 }

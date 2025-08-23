@@ -1,5 +1,6 @@
 package conconccc.schnofiticationbe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,5 +22,6 @@ public class Attachment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notice_id")
+    @JsonIgnore
     private Notice notice;
 }
