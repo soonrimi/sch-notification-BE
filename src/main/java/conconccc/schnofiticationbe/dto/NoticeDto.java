@@ -5,6 +5,7 @@ import conconccc.schnofiticationbe.entity.Notice;
 import lombok.Getter;
 import lombok.Setter;
 
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class NoticeDto {
             this.fileName = a.getFileName();
             this.fileUrl = a.getFileUrl();
         }
+
     }
 
     @Getter
@@ -43,6 +45,7 @@ public class NoticeDto {
         private String createdAt;
         private int viewCount;
         private List<AttachmentResponse> attachments;
+
 
         public Response(Notice n) {
             this.id = n.getId();
@@ -63,6 +66,7 @@ public class NoticeDto {
                     .stream()
                     .map(AttachmentResponse::new)
                     .collect(Collectors.toList());
+
         }
     }
 }

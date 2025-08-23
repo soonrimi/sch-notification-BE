@@ -1,9 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  app:
+  soonrimi-app:
     image: soonrimi-be:latest
-    container_name: sch-notification-be
+    container_name: soonrimi-be
     ports:
       - "7100:7100"
     environment:
@@ -15,30 +15,4 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    depends_on:
-      - db
-    networks:
-      - app-network
-
-  db:
-    image: mysql:8.0
-    container_name: sch-notification-mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USERNAME}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    restart: unless-stopped
-    networks:
-      - app-network
-
-volumes:
-  mysql_data:
-
-networks:
-  app-network:
-    driver: bridge
+    network_mode: "host" # 로컬 DB 접근을 위해 host 네트워크 사용
