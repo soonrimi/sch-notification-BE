@@ -5,12 +5,12 @@ import conconccc.schnofiticationbe.entity.Notice;
 import lombok.Getter;
 import lombok.Setter;
 
-
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class NoticeDto {
-
     @Getter @Setter
     public static class CreateRequest {
         private String title;
@@ -18,7 +18,14 @@ public class NoticeDto {
         private String targetYear;
         private String targetDept;
         private String author;
-        private String source;
+    }
+
+    @Getter @Setter
+    public static class UpdateRequest {
+        private String title;
+        private String content;
+        private String targetYear;
+        private String targetDept;
     }
 
     @Getter
@@ -26,47 +33,38 @@ public class NoticeDto {
         private String fileName;
         private String fileUrl;
 
-        public AttachmentResponse(Attachment a) {
-            this.fileName = a.getFileName();
-            this.fileUrl = a.getFileUrl();
+        public AttachmentResponse(Attachment attachment) {
+            this.fileName = attachment.getFileName();
+            this.fileUrl = attachment.getFileUrl();
         }
-
     }
 
     @Getter
     public static class Response {
         private Long id;
         private String title;
-        private String author;
         private String content;
+        private String author;
+        private Timestamp createdAt;
+        private int viewCount;
         private String targetYear;
         private String targetDept;
         private String source;
-        private String createdAt;
-        private int viewCount;
         private List<AttachmentResponse> attachments;
 
-
-        public Response(Notice n) {
-            this.id = n.getId();
-            this.title = n.getTitle();
-            this.author = n.getAuthor();
-            this.content = n.getContent();
-            this.targetYear = n.getTargetYear();
-            this.targetDept = n.getTargetDept();
-            this.source = n.getSource();
-            this.viewCount = n.getViewCount();
-
-            // LocalDateTime → String 변환
-            this.createdAt = n.getCreatedAt() != null
-                    ? n.getCreatedAt().toString()
-                    : null;
-
-            this.attachments = n.getAttachments()
-                    .stream()
-                    .map(AttachmentResponse::new)
-                    .collect(Collectors.toList());
-
+        public Response(Notice notice) {
+            this.id = notice.getId();
+            this.title = notice.getTitle();
+            this.content = notice.getContent();
+            this.author = notice.getAuthor();
+            this.createdAt = notice.getCreatedAt();
+            this.viewCount = notice.getViewCount();
+            this.targetYear = notice.getTargetYear();
+            this.targetDept = notice.getTargetDept();
+            this.source = notice.getSource();
+            this.attachments = notice.getAttachments().stream()
+                .map(attachment -> new AttachmentResponse(attachment))
+                .collect(Collectors.toList());
         }
     }
 }

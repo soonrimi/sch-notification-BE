@@ -14,6 +14,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,8 +28,10 @@ public class BoardController {
 
     @PostMapping
     @Operation(summary = "건의사항 게시물 생성", description = "새로운 건의사항 게시물을 등록합니다.")
-    public ResponseEntity<BoardDto.Response> createBoard(@RequestBody BoardDto.Request requestDto) {
-        BoardDto.Response responseDto = boardService.createBoard(requestDto);
+    public ResponseEntity<BoardDto.Response> createBoard(
+            @RequestBody BoardDto.CreateRequest requestDto,
+            @RequestParam(required = false) List<MultipartFile> files) {
+        BoardDto.Response responseDto = boardService.createBoard(requestDto, files);
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
@@ -50,20 +53,4 @@ public class BoardController {
         return ResponseEntity.ok(board);
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "건의사항 게시물 수정", description = "ID를 이용하여 기존 건의사항 게시물을 수정합니다.")
-    public ResponseEntity<BoardDto.Response> updateBoard(
-            @Parameter(description = "수정할 게시물 ID", required = true) @PathVariable Long id,
-            @RequestBody BoardDto.Request requestDto) {
-        BoardDto.Response updatedBoard = boardService.updateBoard(id, requestDto);
-        return ResponseEntity.ok(updatedBoard);
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "건의사항 게시물 삭제", description = "ID를 이용하여 건의사항 게시물을 삭제합니다.")
-    public ResponseEntity<Void> deleteBoard(
-            @Parameter(description = "삭제할 게시물 ID", required = true) @PathVariable Long id) {
-        boardService.deleteBoard(id);
-        return ResponseEntity.noContent().build();
-    }
 }
