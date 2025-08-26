@@ -44,7 +44,7 @@ public class BoardService {
                     Attachment attachment = new Attachment();
                     attachment.setFileName(file.getOriginalFilename());
                     attachment.setFileUrl(fileUrl);
-                    attachment.setBasePost(savedBoard);
+                    attachment.setBoard(savedBoard);
                     savedBoard.addAttachment(attachment);
 
                     attachmentRepository.save(attachment);

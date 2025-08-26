@@ -54,7 +54,7 @@ public class NoticeService {
                     Attachment attachment = new Attachment();
                     attachment.setFileName(file.getOriginalFilename());
                     attachment.setFileUrl(fileUrl);
-                    attachment.setBasePost(savedNotice); // FK 연결
+                    attachment.setNotice(savedNotice);
                     savedNotice.getAttachments().add(attachment);
 
                     attachmentRepository.save(attachment);

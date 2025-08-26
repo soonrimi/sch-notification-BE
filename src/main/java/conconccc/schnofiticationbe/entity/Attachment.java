@@ -23,15 +23,23 @@ public class Attachment {
     private String fileUrl;  // 첨부파일 URL
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "base_post_id", foreignKey = @ForeignKey(name = "fk_attachment_base_post", value = ConstraintMode.CONSTRAINT)) // 외래키 조건 명시
-    private BasePost basePost;
+    @JoinColumn(name = "notice_id" )
+    private Notice notice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id" )
+    private Board board;
 
     public Attachment(String fileName, String fileUrl) {
         this.fileName = fileName;
         this.fileUrl = fileUrl;
     }
 
-    public void setBasePost(BasePost basePost) {
-        this.basePost = basePost;
+    public void setNotice(Notice notice) {
+        this.setNotice(notice);
+    }
+
+    public void setBoard(Board board) {
+        this.setBoard(board);
     }
 }
