@@ -48,12 +48,14 @@ public class AdminDto {
         private String name;
         private String role;
         private String message;
+        private String token;
 
-        public LoginResponse(String username, String name, String role, String message) {
+        public LoginResponse(String username, String name, String role, String message, String token) {
             this.username = username;
             this.name = name;
             this.role = role;
             this.message = message;
+            this.token = token;
         }
     }
 
