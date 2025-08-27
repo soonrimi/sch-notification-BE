@@ -39,7 +39,7 @@ public class NoticeService {
         notice.setAuthor(admin.getName());
         notice.setCreatedAt(Timestamp.from(Instant.now()));
         notice.setViewCount(0);
-        notice.setSource("admin");
+        notice.setWriter(admin);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
 
