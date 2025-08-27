@@ -35,7 +35,7 @@ public class NoticeService {
         Notice notice = new Notice();
         notice.setTitle(req.getTitle());
         notice.setContent(req.getContent());
-        notice.setAuthor(admin.getName());
+        notice.setWriter(admin);
         notice.setCreatedAt(Timestamp.from(Instant.now()));
         notice.setViewCount(0);
         notice.setWriter(admin);
