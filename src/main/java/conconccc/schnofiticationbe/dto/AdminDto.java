@@ -13,6 +13,7 @@ public class AdminDto {
         private String password;
         private String name;
         private String role;
+        private String registerPassword;
     }
 
     // 회원가입 응답 DTO
