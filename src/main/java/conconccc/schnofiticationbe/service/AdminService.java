@@ -10,8 +10,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.util.UUID;
-import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 @RequiredArgsConstructor
@@ -42,20 +46,34 @@ public class AdminService {
         return new AdminDto.SignupResponse(saved.getId(), saved.getUsername(), saved.getName(), saved.getRole());
     }
 
+    @Value("${JWT_SECRET}")
+    private String jwtSecret;
+
     public AdminDto.LoginResponse login(AdminDto.LoginRequest req) {
-        Admin admin = adminRepository.findByUsername(req.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
+    Admin admin = adminRepository.findByUsername(req.getUsername())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
 
-        if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
-        }
+    if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
+    }
 
-        return new AdminDto.LoginResponse(
-                admin.getUsername(),
-                admin.getName(),
-                admin.getRole(),
-                "로그인 성공"
-        );
+    // JWT 토큰 생성
+    Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    String token = Jwts.builder()
+        .setSubject(admin.getUsername())
+        .claim("role", admin.getRole())
+        .setIssuedAt(new Date())
+        .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
+
+    return new AdminDto.LoginResponse(
+        admin.getUsername(),
+        admin.getName(),
+        admin.getRole(),
+        "로그인 성공",
+        token
+    );
     }
 
     public AdminDto.ResetPasswordResponse resetPassword(AdminDto.ResetPasswordRequest req) {
