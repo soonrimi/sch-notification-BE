@@ -3,7 +3,7 @@ package conconccc.schnofiticationbe.service;
 import conconccc.schnofiticationbe.dto.AdminDto;
 import conconccc.schnofiticationbe.entity.Admin;
 import conconccc.schnofiticationbe.repository.AdminRepository;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,18 +16,19 @@ import io.github.cdimascio.dotenv.Dotenv;
 @Service
 @RequiredArgsConstructor
 public class AdminService {
-    private final Dotenv dotenv = Dotenv.load();
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${ADMIN_REGISTER_PASSWORD}")
+    private String adminRegisterPassword;
 
     public AdminDto.SignupResponse register(AdminDto.SignupRequest req) {
         if (adminRepository.existsByUsername(req.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다.");
         }
 
-        if (!req.getRegisterPassword().equals(dotenv.get("ADMIN_REGISTER_PASSWORD"))) {
-            System.out.println(dotenv.get("ADMIN_REGISTER_PASSWORD"));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일하지 않습니다.");
+        if (!req.getRegisterPassword().equals(adminRegisterPassword)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일치하지 않습니다.");
         }
 
         Admin admin = new Admin();
