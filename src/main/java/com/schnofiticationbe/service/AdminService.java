@@ -4,6 +4,7 @@ import com.schnofiticationbe.dto.AdminDto;
 import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

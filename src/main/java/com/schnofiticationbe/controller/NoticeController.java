@@ -2,6 +2,7 @@ package com.schnofiticationbe.controller;
 
 import com.schnofiticationbe.dto.NoticeDto;
 
+import com.schnofiticationbe.entity.Notice;
 import com.schnofiticationbe.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
