@@ -28,8 +28,9 @@ public class Notice{
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
 
-    @Column(nullable = false)
-    private String author;
+    @ManyToOne
+    @JoinColumn(name = "writer", nullable = false)
+    private Admin writer; // 작성자
 
     private int viewCount; // 조회수
     private String source; // 출처 구분: "admin", "school", "club", "kakao"
