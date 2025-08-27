@@ -38,7 +38,7 @@ public class NoticeService {
         notice.setAuthor(admin.getName());
         notice.setCreatedAt(Timestamp.from(Instant.now()));
         notice.setViewCount(0);
-        notice.setSource("admin");
+        notice.setWriter(admin);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
 
@@ -46,6 +46,11 @@ public class NoticeService {
 
         // 2. 첨부파일 같이 저장
         if (files != null && !files.isEmpty()) {
+            System.out.println("업로드된 파일 개수: " + files.size());
+            for (MultipartFile f : files) {
+                System.out.println("파일 이름: " + f.getOriginalFilename());
+            }
+
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String fileUrl = storeAttachment.saveFile(file);
@@ -89,5 +94,9 @@ public class NoticeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
 
         noticeRepository.delete(notice);
+    }
+
+    public List<Notice> searchNotices(String keyword) {
+        return noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword);
     }
 }

@@ -48,7 +48,7 @@ public class NoticeDto {
         private int viewCount;
         private String targetYear;
         private String targetDept;
-        private String source;
+        private Admin writer;
         private List<AttachmentResponse> attachments;
 
         public Response(Notice notice) {
@@ -60,7 +60,7 @@ public class NoticeDto {
             this.viewCount = notice.getViewCount();
             this.targetYear = notice.getTargetYear();
             this.targetDept = notice.getTargetDept();
-            this.source = notice.getSource();
+            this.writer = notice.getWriter();
             this.attachments = notice.getAttachments().stream()
                 .map(attachment -> new AttachmentResponse(attachment))
                 .collect(Collectors.toList());

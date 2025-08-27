@@ -10,16 +10,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
+import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
+    private final Dotenv dotenv = Dotenv.load();
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AdminDto.SignupResponse register(AdminDto.SignupRequest req) {
         if (adminRepository.existsByUsername(req.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다.");
+        }
+
+        if (!req.getRegisterPassword().equals(dotenv.get("ADMIN_REGISTER_PASSWORD"))) {
+            System.out.println(dotenv.get("ADMIN_REGISTER_PASSWORD"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일하지 않습니다.");
         }
 
         Admin admin = new Admin();
