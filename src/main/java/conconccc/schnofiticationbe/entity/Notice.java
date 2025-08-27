@@ -5,37 +5,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "notice")
-public class Notice {
+@DiscriminatorValue("NOTICE")
+public class Notice extends BasePost {
+    @Column(nullable = false)
+    private String author;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String title; // 제목
-    private String author; // 작성자 (관리자 이름, 학교측 이름, 크롤링 원문 작성자)
-
-    @Column(columnDefinition = "TEXT")
-    private String content; // 내용
-
-    private LocalDateTime createdAt; // 등록일
     private int viewCount; // 조회수
-    private String source; // 출처 구분: "admin", "school", "club", "kakao"
+
+    @ManyToOne
+    @JoinColumn(name = "writer", nullable = false)
+    private Admin writer; // 작성자
 
     private String targetYear;  // "1,2,3,전체"
     private String targetDept;  // "컴퓨터공학과, 전체"
 
-    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
-
 }
-

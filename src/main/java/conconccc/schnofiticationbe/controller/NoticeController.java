@@ -26,4 +26,9 @@ public class NoticeController {
 
         return ResponseEntity.ok(noticeService.getNotice(id));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Notice>> searchNotices(@RequestParam String keyword) {
+        return ResponseEntity.ok(noticeService.searchNotices(keyword));
+    }
 }

@@ -1,80 +1,68 @@
 package conconccc.schnofiticationbe.service;
 
-import conconccc.schnofiticationbe.dto.BoardDto; // 수정된 DTO 임포트
+import conconccc.schnofiticationbe.Utils.StoreAttachment;
+import conconccc.schnofiticationbe.dto.BoardDto;
+import conconccc.schnofiticationbe.entity.Attachment;
 import conconccc.schnofiticationbe.entity.Board;
+import conconccc.schnofiticationbe.repository.AttachmentRepository;
 import conconccc.schnofiticationbe.repository.BoardRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
-
     private final BoardRepository boardRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final StoreAttachment storeAttachment;
 
-    /**
-     * 게시물 생성
-     */
-    @Transactional
-    public BoardDto.Response createBoard(BoardDto.Request requestDto) {
-        Board board = requestDto.toEntity();
+    public BoardDto.Response createBoard(BoardDto.CreateRequest req, List<MultipartFile> files) {
+
+        Board board = new Board();
+        board.setTitle(req.getTitle());
+        board.setContent(req.getContent());
+        board.setCreatedAt(Timestamp.from(Instant.now()));
+
         Board savedBoard = boardRepository.save(board);
+
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String fileUrl = storeAttachment.saveFile(file);
+
+                    Attachment attachment = new Attachment();
+                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setFileUrl(fileUrl);
+                    attachment.setBasePost(savedBoard);
+                    savedBoard.addAttachment(attachment);
+
+                    attachmentRepository.save(attachment);
+                }
+            }
+        }
+
         return new BoardDto.Response(savedBoard);
     }
 
-    /**
-     * 전체 게시물 조회
-     */
-    @Transactional(readOnly = true)
     public Page<BoardDto.Response> getAllBoards(Pageable pageable) {
-        Page<Board> boardPage = boardRepository.findAll(pageable);
-
-        return boardPage.map(BoardDto.Response::new);
+        return boardRepository.findAll(pageable)
+                .map(BoardDto.Response::new);
     }
 
-    /**
-     * 단일 게시물 조회
-     */
-    @Transactional(readOnly = true)
     public BoardDto.Response getBoardById(Long id) {
-        Board board = findBoardById(id);
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."));
         return new BoardDto.Response(board);
     }
 
-    /**
-     * 게시물 수정
-     */
-    @Transactional
-    public BoardDto.Response updateBoard(Long id, BoardDto.Request requestDto) {
-        Board board = findBoardById(id);
-
-        board.setTitle(requestDto.getTitle());
-        board.setContent(requestDto.getContent());
-
-        return new BoardDto.Response(board);
-    }
-
-    /**
-     * 게시물 삭제
-     */
-    @Transactional
-    public void deleteBoard(Long id) {
-        Board board = findBoardById(id);
-        boardRepository.delete(board);
-    }
-
-    /**
-     * 중복 코드 제거를 위한 헬퍼 메서드
-     */
-    private Board findBoardById(Long id) {
-        return boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("해당 ID의 게시물을 찾을 수 없습니다: " + id));
-    }
 }
