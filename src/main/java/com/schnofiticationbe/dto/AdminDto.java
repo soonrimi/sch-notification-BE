@@ -24,11 +24,12 @@ public class AdminDto {
         private String name;
         private String role;
 
-        public SignupResponse(Long id, String username, String name, String role) {
+        public SignupResponse(Long id, String username, String name, String role, String token) {
             this.id = id;
             this.username = username;
             this.name = name;
             this.role = role;
+            this.token = token;
         }
     }
 

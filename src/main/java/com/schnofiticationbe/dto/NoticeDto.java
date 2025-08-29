@@ -1,5 +1,6 @@
 package com.schnofiticationbe.dto;
 
+import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Notice;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class NoticeDto {
         private String content;
         private String targetYear;
         private String targetDept;
-        private String author;
+        private Admin writer;
     }
 
     @Getter @Setter
@@ -43,7 +44,6 @@ public class NoticeDto {
         private Long id;
         private String title;
         private String content;
-        private String author;
         private Timestamp createdAt;
         private int viewCount;
         private String targetYear;
@@ -55,7 +55,6 @@ public class NoticeDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.author = notice.getAuthor();
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.targetYear = notice.getTargetYear();
