@@ -1,13 +1,21 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.AdminDto;
+import com.schnofiticationbe.security.jwt.JwtProvider;
+import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.entity.Admin;
+import com.schnofiticationbe.entity.InternalNotice;
+import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.repository.AdminRepository;
+import com.schnofiticationbe.repository.NoticeRepository;
+import com.schnofiticationbe.repository.AttachmentRepository;
+import com.schnofiticationbe.Utils.StoreAttachment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Date;
@@ -15,13 +23,51 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
+    private final JwtProvider jwtProvider;
     private final AdminRepository adminRepository;
+    private final NoticeRepository noticeRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
+
+    // 공지 생성 (InternalNotice)
+    public InternalNoticeDto.Response createInternalNotice(String jwtToken, InternalNoticeDto.CreateRequest req, List<MultipartFile> files) {
+        String username = jwtProvider.getUsername(jwtToken);
+        Admin admin = adminRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("관리자가 존재하지 않습니다."));
+
+        InternalNotice notice = new InternalNotice();
+        notice.setTitle(req.getTitle());
+        notice.setContent(req.getContent());
+        notice.setWriter(admin);
+        notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        notice.setViewCount(0);
+        notice.setTargetYear(req.getTargetYear());
+        notice.setTargetDept(req.getTargetDept());
+
+        InternalNotice savedNotice = noticeRepository.save(notice);
+
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String fileUrl = storeAttachment.saveFile(file);
+                    Attachment attachment = new Attachment();
+                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setFileUrl(fileUrl);
+                    attachment.setNotice(savedNotice);
+                    savedNotice.getAttachments().add(attachment);
+                    attachmentRepository.save(attachment);
+                }
+            }
+        }
+        return new InternalNoticeDto.Response(savedNotice);
+    }
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
     private String adminRegisterPassword;
