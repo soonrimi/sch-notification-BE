@@ -5,6 +5,8 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import com.schnofiticationbe.Utils.RsaKeyLoader;
+import org.springframework.core.io.ClassPathResource;
+import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import org.springframework.stereotype.Component;
@@ -21,8 +23,10 @@ public class JwtProvider {
 
     public JwtProvider() {
         try {
-            this.privateKey = RsaKeyLoader.loadPrivateKey("src/main/resources/keys/private.pem");
-            this.publicKey = RsaKeyLoader.loadPublicKey("src/main/resources/keys/public.pem");
+            ClassPathResource privateKeyResource = new ClassPathResource("keys/private.pem");
+            ClassPathResource publicKeyResource = new ClassPathResource("keys/public.pem");
+            this.privateKey = RsaKeyLoader.loadPrivateKey(privateKeyResource.getInputStream());
+            this.publicKey = RsaKeyLoader.loadPublicKey(publicKeyResource.getInputStream());
         } catch (Exception e) {
             throw new RuntimeException("Failed to load RSA keys", e);
         }
