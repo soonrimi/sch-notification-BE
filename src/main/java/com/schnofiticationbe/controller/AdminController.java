@@ -3,9 +3,8 @@ package com.schnofiticationbe.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.schnofiticationbe.dto.AdminDto;
-import com.schnofiticationbe.dto.NoticeDto;
+import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.service.AdminService;
-import com.schnofiticationbe.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
-    private final NoticeService noticeService;
 
     @PostMapping("/register")
     public ResponseEntity<AdminDto.SignupResponse> register(@RequestBody AdminDto.SignupRequest req) {
@@ -60,15 +58,17 @@ public class AdminController {
     }
 
     @PostMapping("/notice")
-    public ResponseEntity<NoticeDto.Response> createNotice(
-            @RequestParam Long adminId,
+    public ResponseEntity<InternalNoticeDto.Response> createNotice(
+            @RequestHeader("Authorization") String authorization,
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            NoticeDto.CreateRequest req = mapper.readValue(noticeJson, NoticeDto.CreateRequest.class);
-            return ResponseEntity.ok(noticeService.createNotice(adminId, req, files));
+            InternalNoticeDto.CreateRequest req = mapper.readValue(noticeJson, InternalNoticeDto.CreateRequest.class);
+            return ResponseEntity.ok(adminService.createInternalNotice(
+                authorization, req, files
+            ));
         } catch (Exception e) {
             throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
         }

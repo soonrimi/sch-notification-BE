@@ -1,5 +1,6 @@
 package com.schnofiticationbe.dto;
 
+import com.schnofiticationbe.entity.Admin;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ public class AdminDto {
         private String username;
         private String password;
         private String name;
-        private String role;
+        private String affiliation;
         private String registerPassword;
     }
 
@@ -22,13 +23,13 @@ public class AdminDto {
         private Long id;
         private String username;
         private String name;
-        private String role;
+        private String affiliation;
 
-        public SignupResponse(Long id, String username, String name, String role) {
+        public SignupResponse(Long id, String username, String name, String affiliation) {
             this.id = id;
             this.username = username;
             this.name = name;
-            this.role = role;
+            this.affiliation = affiliation;
         }
     }
 
@@ -46,11 +47,11 @@ public class AdminDto {
     public static class LoginResponse {
         private String username;
         private String name;
-        private String role;
+        private Admin.Role role;
         private String message;
         private String token;
 
-        public LoginResponse(String username, String name, String role, String message, String token) {
+        public LoginResponse(String username, String name, Admin.Role role, String message, String token) {
             this.username = username;
             this.name = name;
             this.role = role;
