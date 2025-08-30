@@ -13,8 +13,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorValue("NOTICE")
-public class Notice{
+public abstract class Notice{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,15 +29,10 @@ public class Notice{
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "writer", nullable = false)
-    private Admin writer; // 작성자
+    // 작성자 필드는 하위 클래스에서 정의
 
     private int viewCount; // 조회수
-    private String source; // 출처 구분: "admin", "school", "club", "kakao"
 
-    private String targetYear;  // "1,2,3,전체"
-    private String targetDept;  // "컴퓨터공학과, 전체"
 
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();

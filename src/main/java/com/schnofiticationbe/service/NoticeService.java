@@ -17,59 +17,14 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
-    private final AdminRepository adminRepository;
-    private final AttachmentRepository attachmentRepository;
-    private final StoreAttachment storeAttachment;
-
-    // 수정사항 : 여러 개 파일 받도록 수정
-    public NoticeDto.Response createNotice(Long adminId, NoticeDto.CreateRequest req, List<MultipartFile> files) {
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new IllegalArgumentException("관리자가 존재하지 않습니다."));
-
-        // 1. 공지 먼저 저장
-        Notice notice = new Notice();
-        notice.setTitle(req.getTitle());
-        notice.setContent(req.getContent());
-        notice.setWriter(admin);
-        notice.setCreatedAt(Timestamp.from(Instant.now()));
-        notice.setViewCount(0);
-        notice.setWriter(admin);
-        notice.setTargetYear(req.getTargetYear());
-        notice.setTargetDept(req.getTargetDept());
-
-        Notice savedNotice = noticeRepository.save(notice);
-
-        // 2. 첨부파일 같이 저장
-        if (files != null && !files.isEmpty()) {
-            System.out.println("업로드된 파일 개수: " + files.size());
-            for (MultipartFile f : files) {
-                System.out.println("파일 이름: " + f.getOriginalFilename());
-            }
-
-            for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
-                    String fileUrl = storeAttachment.saveFile(file);
-
-                    Attachment attachment = new Attachment();
-                    attachment.setFileName(file.getOriginalFilename());
-                    attachment.setFileUrl(fileUrl);
-                    attachment.setNotice(savedNotice);
-                    savedNotice.getAttachments().add(attachment);
-
-                    attachmentRepository.save(attachment);
-                }
-            }
-        }
-
-        return new NoticeDto.Response(savedNotice);
-    }
-
-
 
     // 전체 공지 조회
     public List<NoticeDto.Response> getAllNotices() {
