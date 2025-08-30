@@ -19,7 +19,7 @@ public class FetchedNotice extends Notice {
     @Column(nullable = true)
     private String externalSourceUrl; // 크롤링 원본 URL
 
-    private String source; // 출처 구분: "admin", "school", "club", "kakao"
+    private String source; // 공지 출처 (예: 학교 홈페이지, 특정 게시판 등)
 
     // FetchedNotice만의 추가 필드가 있다면 여기에 작성
 }
