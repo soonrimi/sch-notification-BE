@@ -29,20 +29,9 @@ public abstract class Notice{
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
 
-    // 작성자 필드는 하위 클래스에서 정의
-
     private int viewCount; // 조회수
-
 
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
-
-
-    public void addAttachment(Attachment attachment) {
-        this.attachments.add(attachment);
-        attachment.setNotice(this);
-    }
-
-
 
 }

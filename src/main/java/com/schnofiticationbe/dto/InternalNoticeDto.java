@@ -2,6 +2,7 @@ package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Admin;
+import com.schnofiticationbe.entity.InternalNotice;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,7 +38,7 @@ public class InternalNoticeDto {
     public static class CreateRequest {
         private String title;
         private String content;
-        private String targetYear;
+        private InternalNotice.TargetYear targetYear;
         private String targetDept;
     }
 
@@ -74,7 +75,7 @@ public class InternalNoticeDto {
         private Timestamp createdAt;
         private int viewCount;
         private String writerName;
-        private String targetYear;
+        private InternalNotice.TargetYear targetYear;
         private String targetDept;
         private List<AttachmentResponse> attachments;
 

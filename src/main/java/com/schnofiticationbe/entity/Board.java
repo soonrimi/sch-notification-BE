@@ -27,13 +27,4 @@ public class Board{
 
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
-
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
-
-
-    public void addAttachment(Attachment attachment) {
-        this.attachments.add(attachment);
-        attachment.setBoard(this);
-    }
 }

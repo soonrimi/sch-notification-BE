@@ -1,6 +1,7 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.AdminDto;
+import com.schnofiticationbe.repository.InternalNoticeRepository;
 import com.schnofiticationbe.security.jwt.JwtProvider;
 import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.entity.Admin;
@@ -21,12 +22,14 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 
+
+
 @Service
 @RequiredArgsConstructor
 public class AdminService {
     private final JwtProvider jwtProvider;
     private final AdminRepository adminRepository;
-    private final NoticeRepository noticeRepository;
+    private final InternalNoticeRepository internalNoticeRepository;
     private final AttachmentRepository attachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
@@ -46,7 +49,7 @@ public class AdminService {
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
 
-        InternalNotice savedNotice = noticeRepository.save(notice);
+        InternalNotice savedNotice = internalNoticeRepository.save(notice);
 
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
@@ -148,6 +151,15 @@ public class AdminService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."
                 ));
+    }
+
+    public List<InternalNoticeDto.Response> getMyInternalNotice(String jwtToken) {
+        String userId = jwtProvider.getUserId(jwtToken);
+        Admin getCurrentAdmin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
+        return notices.stream().map(InternalNoticeDto.Response::new).toList();
     }
 
 }
