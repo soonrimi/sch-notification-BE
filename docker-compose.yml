@@ -2,16 +2,11 @@ version: "3.8"
 
 services:
   soonrimi-app:
+    build: .
     image: soonrimi-be:latest
     container_name: soonrimi-be
     ports:
       - "7100:7100"
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
     env_file:
       - .env
     restart: unless-stopped

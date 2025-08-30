@@ -1,6 +1,7 @@
 package com.schnofiticationbe.Utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -11,8 +12,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class RsaKeyLoader {
-    public static PrivateKey loadPrivateKey(String filename) throws Exception {
-        String key = new String(Files.readAllBytes(Paths.get(filename)))
+    public static PrivateKey loadPrivateKey(InputStream inputStream) throws Exception {
+        String key = new String(inputStream.readAllBytes())
                 .replaceAll("-----BEGIN (.*)-----", "")
                 .replaceAll("-----END (.*)-----", "")
                 .replaceAll("\r\n", "")
@@ -23,8 +24,8 @@ public class RsaKeyLoader {
         return kf.generatePrivate(spec);
     }
 
-    public static PublicKey loadPublicKey(String filename) throws Exception {
-        String key = new String(Files.readAllBytes(Paths.get(filename)))
+    public static PublicKey loadPublicKey(InputStream inputStream) throws Exception {
+        String key = new String(inputStream.readAllBytes())
                 .replaceAll("-----BEGIN (.*)-----", "")
                 .replaceAll("-----END (.*)-----", "")
                 .replaceAll("\r\n", "")
