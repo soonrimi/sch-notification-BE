@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("INTERNAL")
+@DiscriminatorValue("InternalNotice")
 public class InternalNotice extends Notice {
     public enum TargetYear {
         FIRST_YEAR("1학년"),

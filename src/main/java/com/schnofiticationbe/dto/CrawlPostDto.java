@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NoticeDto {
+public class CrawlPostDto {
     @Getter @Setter
     public static class CreateRequest {
         private String title;
@@ -52,7 +52,7 @@ public class NoticeDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.createdAt = notice.getCreatedAt();
+            //this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.attachments = notice.getAttachments().stream()
                 .map(attachment -> new AttachmentResponse(attachment))

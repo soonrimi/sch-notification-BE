@@ -13,11 +13,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @DiscriminatorValue("NOTICE")
 public abstract class Notice{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(nullable = false)
@@ -26,8 +26,8 @@ public abstract class Notice{
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
-    private Timestamp createdAt;
+    //@Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
+    //private Timestamp createdAt;
 
     private int viewCount; // 조회수
 

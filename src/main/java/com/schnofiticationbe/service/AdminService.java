@@ -8,7 +8,6 @@ import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.entity.InternalNotice;
 import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.repository.AdminRepository;
-import com.schnofiticationbe.repository.NoticeRepository;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.Utils.StoreAttachment;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +43,7 @@ public class AdminService {
         notice.setTitle(req.getTitle());
         notice.setContent(req.getContent());
         notice.setWriter(admin);
-        notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        //notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         notice.setViewCount(0);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());

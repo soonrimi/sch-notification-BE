@@ -83,7 +83,7 @@ public class InternalNoticeDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.createdAt = notice.getCreatedAt();
+            //this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.writerName = notice.getWriter().getName();
             this.targetYear = notice.getTargetYear();
