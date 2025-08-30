@@ -39,16 +39,12 @@ public class BoardDto {
         private String title;
         private String content;
         private Timestamp createdAt;
-        private List<AttachmentResponse> attachments;
 
         public Response(Board board) {
             this.id = board.getId();
             this.title = board.getTitle();
             this.content = board.getContent();
             this.createdAt = board.getCreatedAt();
-            this.attachments = board.getAttachments().stream()
-                .map(AttachmentResponse::new)
-                .collect(Collectors.toList());
         }
     }
 }

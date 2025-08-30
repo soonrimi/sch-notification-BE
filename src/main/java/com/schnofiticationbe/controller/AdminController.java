@@ -35,25 +35,13 @@ public class AdminController {
         return ResponseEntity.ok(adminService.resetPassword(req));
     }
 
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<Void> resetPassword(@RequestBody Map<String, String> req) {
-//        String username = req.get("username");
-//        String tempPassword = RandomStringUtils.randomAlphanumeric(10); // Apache Commons Lang
-//        adminService.updatePassword(username, tempPassword);
-//
-//        // 이메일 발송 : username이 이메일이면 그대로 사용하면 됨
-//        emailService.sendTempPassword(username, tempPassword);
-//
-//        return ResponseEntity.ok().build();
-//    }
-
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody Map<String, String> req) {
-        String username = req.get("username");
+        String userId = req.get("userId");
         String tempPassword = req.get("tempPassword");
         String newPassword = req.get("newPassword");
 
-        adminService.changePassword(username, tempPassword, newPassword);
+        adminService.changePassword(userId, tempPassword, newPassword);
         return ResponseEntity.ok().build();
     }
 
@@ -72,6 +60,11 @@ public class AdminController {
         } catch (Exception e) {
             throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
         }
+    }
+
+    @GetMapping("/myNotices")
+    public ResponseEntity<List<InternalNoticeDto.Response>> getMyNotices(@RequestHeader("Authorization") String authorization) {
+        return ResponseEntity.ok(adminService.getMyInternalNotice(authorization));
     }
 
 }

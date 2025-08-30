@@ -1,6 +1,5 @@
 package com.schnofiticationbe.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,10 +26,6 @@ public class Attachment {
     @JoinColumn(name = "notice_id" )
     private Notice notice;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id" )
-    private Board board;
-
     public Attachment(String fileName, String fileUrl) {
         this.fileName = fileName;
         this.fileUrl = fileUrl;
@@ -40,7 +35,4 @@ public class Attachment {
         this.setNotice(notice);
     }
 
-    public void setBoard(Board board) {
-        this.setBoard(board);
-    }
 }

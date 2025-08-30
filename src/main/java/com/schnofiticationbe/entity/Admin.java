@@ -20,7 +20,7 @@ public class Admin {
 
     @Setter
     @Column(nullable = false, unique = true, length = 50)
-    private String username;   // 아이디
+    private String userId;   // 아이디
 
     @Setter
     @Column(nullable = false)
