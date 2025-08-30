@@ -92,9 +92,6 @@ public class AdminService {
         return new AdminDto.SignupResponse(saved.getId(), saved.getUsername(), saved.getName(), saved.getAffiliation());
     }
 
-    @Value("${JWT_SECRET}")
-    private String jwtSecret;
-
     public AdminDto.LoginResponse login(AdminDto.LoginRequest req) {
         Admin admin = adminRepository.findByUsername(req.getUsername())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
@@ -103,15 +100,8 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
         }
 
-        // JWT 토큰 생성
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        String token = Jwts.builder()
-            .setSubject(admin.getUsername())
-            .claim("role", admin.getRole())
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-            .signWith(key, SignatureAlgorithm.HS256)
-            .compact();
+        // JWT 토큰 생성 (JwtProvider 사용)
+        String token = jwtProvider.createToken(admin.getUsername(), admin.getRole());
 
         return new AdminDto.LoginResponse(
             admin.getUsername(),
