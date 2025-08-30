@@ -12,6 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Restore private.pem from secret
+        run: |
+          mkdir -p src/main/resources/keys
+          echo "$PRIVATE_PEM" > src/main/resources/keys/private.pem
+        env:
+          PRIVATE_PEM: ${{ secrets.PRIVATE_PEM }}
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -36,7 +43,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          source: "soonrimi-be.tar,docker-compose.yml"
+          source: "soonrimi-be.tar,docker-compose.yml,src/main/resources/keys/private.pem"
           target: "/home/${{ secrets.SERVER_USER }}/soonrimi-be/"
 
       - name: Create .env file on server
