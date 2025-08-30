@@ -1,5 +1,6 @@
 package com.schnofiticationbe.security.jwt;
 
+import com.schnofiticationbe.entity.Admin;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -32,7 +33,7 @@ public class JwtProvider {
         }
     }
 
-    public String createToken(String username, String role) {
+    public String createToken(String username, Admin.Role role) {
             return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
