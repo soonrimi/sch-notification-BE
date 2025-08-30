@@ -49,11 +49,11 @@ public class AdminController {
 
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody Map<String, String> req) {
-        String username = req.get("username");
+        String userId = req.get("userId");
         String tempPassword = req.get("tempPassword");
         String newPassword = req.get("newPassword");
 
-        adminService.changePassword(username, tempPassword, newPassword);
+        adminService.changePassword(userId, tempPassword, newPassword);
         return ResponseEntity.ok().build();
     }
 

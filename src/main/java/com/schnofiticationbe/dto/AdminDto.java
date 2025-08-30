@@ -10,7 +10,7 @@ public class AdminDto {
     @Getter
     @Setter
     public static class SignupRequest {
-        private String username;
+        private String userId;
         private String password;
         private String name;
         private String affiliation;
@@ -21,13 +21,13 @@ public class AdminDto {
     @Getter @Setter
     public static class SignupResponse {
         private Long id;
-        private String username;
+        private String userId;
         private String name;
         private String affiliation;
 
-        public SignupResponse(Long id, String username, String name, String affiliation) {
+        public SignupResponse(Long id, String userId, String name, String affiliation) {
             this.id = id;
-            this.username = username;
+            this.userId = userId;
             this.name = name;
             this.affiliation = affiliation;
         }
@@ -37,7 +37,7 @@ public class AdminDto {
     @Getter
     @Setter
     public static class LoginRequest {
-        private String username;
+        private String userId;
         private String password;
     }
 
@@ -45,14 +45,14 @@ public class AdminDto {
     @Getter
     @Setter
     public static class LoginResponse {
-        private String username;
+        private String userId;
         private String name;
         private Admin.Role role;
         private String message;
         private String token;
 
-        public LoginResponse(String username, String name, Admin.Role role, String message, String token) {
-            this.username = username;
+        public LoginResponse(String userId, String name, Admin.Role role, String message, String token) {
+            this.userId = userId;
             this.name = name;
             this.role = role;
             this.message = message;
@@ -62,16 +62,16 @@ public class AdminDto {
 
     @Getter @Setter
     public static class ResetPasswordRequest {
-        private String username; // 아이디
+        private String userId; // 아이디
     }
 
     @Getter @Setter
     public static class ResetPasswordResponse {
-        private String username;
+        private String userId;
         private String tempPassword;
 
-        public ResetPasswordResponse(String username, String tempPassword) {
-            this.username = username;
+        public ResetPasswordResponse(String userId, String tempPassword) {
+            this.userId = userId;
             this.tempPassword = tempPassword;
         }
     }
