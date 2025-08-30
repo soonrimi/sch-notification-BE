@@ -61,14 +61,14 @@ public class AdminController {
 
     @PostMapping("/notice")
     public ResponseEntity<NoticeDto.Response> createNotice(
-            @RequestParam Long adminId,
+            @RequestHeader("Authorization") String authorization,
             @RequestPart("notice") String noticeJson,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             NoticeDto.CreateRequest req = mapper.readValue(noticeJson, NoticeDto.CreateRequest.class);
-            return ResponseEntity.ok(noticeService.createNotice(adminId, req, files));
+            return ResponseEntity.ok(noticeService.createNotice(authorization, req, files));
         } catch (Exception e) {
             throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
         }

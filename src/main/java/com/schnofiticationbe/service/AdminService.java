@@ -39,11 +39,11 @@ public class AdminService {
         admin.setUsername(req.getUsername());
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         admin.setName(req.getName());
-        admin.setRole(req.getRole());
+        admin.setAffiliation(req.getAffiliation());
 
         Admin saved = adminRepository.save(admin);
 
-        return new AdminDto.SignupResponse(saved.getId(), saved.getUsername(), saved.getName(), saved.getRole());
+        return new AdminDto.SignupResponse(saved.getId(), saved.getUsername(), saved.getName(), saved.getAffiliation());
     }
 
     @Value("${JWT_SECRET}")

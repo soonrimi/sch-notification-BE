@@ -17,6 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +29,12 @@ public class NoticeService {
     private final AttachmentRepository attachmentRepository;
     private final StoreAttachment storeAttachment;
 
-    // 수정사항 : 여러 개 파일 받도록 수정
-    public NoticeDto.Response createNotice(Long adminId, NoticeDto.CreateRequest req, List<MultipartFile> files) {
-        Admin admin = adminRepository.findById(adminId)
+    @Value("${JWT_SECRET}")
+    private String jwtSecret;
+
+    public NoticeDto.Response createNotice(String jwtToken, NoticeDto.CreateRequest req, List<MultipartFile> files) {
+        String username = getUsernameFromToken(jwtToken);
+        Admin admin = adminRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("관리자가 존재하지 않습니다."));
 
         // 1. 공지 먼저 저장
@@ -38,7 +44,6 @@ public class NoticeService {
         notice.setWriter(admin);
         notice.setCreatedAt(Timestamp.from(Instant.now()));
         notice.setViewCount(0);
-        notice.setWriter(admin);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(req.getTargetDept());
 

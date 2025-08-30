@@ -37,3 +37,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# JWT RSA Private Key
+src/main/resources/keys/private.pem
