@@ -27,15 +27,23 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
+<<<<<<< HEAD
+    implementation("org.springframework.boot:spring-boot-starter-security") // 임시로 주석 처리
+=======
     implementation("org.springframework.boot:spring-boot-starter-security")
+>>>>>>> 1dde0b71999de4ff822d7e49017fdfc6b5e33d0e
     implementation("org.springframework.boot:spring-boot-starter-web")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+<<<<<<< HEAD
+    testImplementation("org.springframework.security:spring-security-test") // 임시로 주석 처리
+=======
 
     testImplementation("org.springframework.security:spring-security-test")
+>>>>>>> 1dde0b71999de4ff822d7e49017fdfc6b5e33d0e
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
