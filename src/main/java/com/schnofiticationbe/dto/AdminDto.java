@@ -1,6 +1,7 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Admin;
+import com.schnofiticationbe.entity.InternalNotice;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -75,5 +76,4 @@ public class AdminDto {
             this.tempPassword = tempPassword;
         }
     }
-
 }

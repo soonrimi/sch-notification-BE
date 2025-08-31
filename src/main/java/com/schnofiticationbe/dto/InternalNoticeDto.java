@@ -3,6 +3,7 @@ package com.schnofiticationbe.dto;
 import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.entity.InternalNotice;
+import com.schnofiticationbe.entity.Department;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +40,7 @@ public class InternalNoticeDto {
         private String title;
         private String content;
         private InternalNotice.TargetYear targetYear;
-        private String targetDept;
+        private long targetDept;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -76,7 +77,7 @@ public class InternalNoticeDto {
         private int viewCount;
         private String writerName;
         private InternalNotice.TargetYear targetYear;
-        private String targetDept;
+        private Department targetDept;
         private List<AttachmentResponse> attachments;
 
         public Response(com.schnofiticationbe.entity.InternalNotice notice) {

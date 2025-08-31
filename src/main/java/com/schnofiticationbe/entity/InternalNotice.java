@@ -12,10 +12,11 @@ import lombok.Setter;
 @DiscriminatorValue("InternalNotice")
 public class InternalNotice extends Notice {
     public enum TargetYear {
+        ALL_YEARS("전체"),
         FIRST_YEAR("1학년"),
         SECOND_YEAR("2학년"),
         THIRD_YEAR("3학년"),
-        ALL_YEARS("전체");
+        FOURTH_YEAR("4학년");
 
         private final String description;
 
@@ -33,10 +34,11 @@ public class InternalNotice extends Notice {
     private Admin writer; // 실제 작성자
 
     @Column(nullable = false)
-    private TargetYear targetYear;  // "1,2,3,전체"
+    private TargetYear targetYear;
 
-    @Column(nullable = false)
-    private String targetDept;  // "컴퓨터공학과, 전체"
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private Department targetDept;
 
     // InternalNotice만의 추가 필드가 있다면 여기에 작성
 }

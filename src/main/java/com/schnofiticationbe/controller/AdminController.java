@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.schnofiticationbe.dto.AdminDto;
 import com.schnofiticationbe.dto.InternalNoticeDto;
+import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,21 +46,13 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/notice")
-    public ResponseEntity<InternalNoticeDto.Response> createNotice(
+    @PostMapping(value = "/internal-notice", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<InternalNoticeDto.Response> createInternalNotice(
             @RequestHeader("Authorization") String authorization,
-            @RequestPart("notice") String noticeJson,
+            @RequestPart("internalNotice") InternalNoticeDto.CreateRequest req,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            InternalNoticeDto.CreateRequest req = mapper.readValue(noticeJson, InternalNoticeDto.CreateRequest.class);
-            return ResponseEntity.ok(adminService.createInternalNotice(
-                authorization, req, files
-            ));
-        } catch (Exception e) {
-            throw new RuntimeException("공지 등록 실패: JSON 파싱 오류", e);
-        }
+        return ResponseEntity.ok(adminService.createInternalNotice(authorization, req, files));
     }
 
     @GetMapping("/myNotices")
@@ -67,4 +60,8 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getMyInternalNotice(authorization));
     }
 
+    @GetMapping("/departments")
+    public ResponseEntity<List<Department>> getAllDepartment() {
+        return ResponseEntity.ok(adminService.getAllDepartment());
+    }
 }
