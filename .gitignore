@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 .env
+/uploads
 
 ### STS ###
 .apt_generated
@@ -36,3 +37,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# JWT RSA Private Key
+src/main/resources/keys/private.pem

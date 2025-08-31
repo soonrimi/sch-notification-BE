@@ -14,7 +14,6 @@ public class SubscribeService {
 
     private final SubscribeRepository subscribeRepository;
 
-
     public Subscribe createSubscribe(String category, String device) {
         Subscribe subscribe = new Subscribe();
         subscribe.setCategory(category);
@@ -22,17 +21,14 @@ public class SubscribeService {
         return subscribeRepository.save(subscribe);
     }
 
-
     public List<Subscribe> getAllSubscribes() {
         return subscribeRepository.findAll();
     }
-
 
     public Subscribe getSubscribe(int id) {
         return subscribeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
     }
-
 
     @Transactional
     public Subscribe updateSubscribe(int id, String newCategory, String newDevice) {
@@ -49,14 +45,12 @@ public class SubscribeService {
         return subscribe;
     }
 
-
     public void deleteSubscribe(int id) {
         if (!subscribeRepository.existsById(id)) {
             throw new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id);
         }
         subscribeRepository.deleteById(id);
     }
-
 
     @Transactional
     public Subscribe updateCategory(int id, String newCategory) {

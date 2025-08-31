@@ -1,4 +1,4 @@
-package conconccc.schnofiticationbe.entity;
+package com.schnofiticationbe.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,6 +8,11 @@ import lombok.Setter;
 @Entity
 @Table(name = "admin")
 public class Admin {
+    public enum Role {
+        SUPER_ADMIN,
+        ADMIN
+    }
+
     // getter/setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,7 +20,7 @@ public class Admin {
 
     @Setter
     @Column(nullable = false, unique = true, length = 50)
-    private String username;   // 아이디
+    private String userId;   // 아이디
 
     @Setter
     @Column(nullable = false)
@@ -26,7 +31,12 @@ public class Admin {
     private String name;   // 이름
 
     @Setter
+    @Column(nullable = false)
+    private Role role;   // 권한
+
+    @Setter
     @Column(length = 50)
-    private String role;   // 소속
+    private String affiliation; // 소속
 
 }
+
