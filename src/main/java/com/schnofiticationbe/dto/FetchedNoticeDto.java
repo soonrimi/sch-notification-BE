@@ -1,7 +1,7 @@
 package com.schnofiticationbe.dto;
 
-import com.schnofiticationbe.entity.FetchedNotice;
 import com.schnofiticationbe.entity.Attachment;
+import com.schnofiticationbe.entity.CrawlPosts;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -43,11 +43,11 @@ public class FetchedNoticeDto {
         private String externalSourceUrl;
         private List<AttachmentResponse> attachments;
 
-        public Response(FetchedNotice notice) {
+        public Response(CrawlPosts notice) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.createdAt = notice.getCreatedAt();
+            //this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.writer = notice.getWriter();
             this.externalSourceUrl = notice.getExternalSourceUrl();

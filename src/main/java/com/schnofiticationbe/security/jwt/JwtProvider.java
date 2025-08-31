@@ -7,7 +7,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import com.schnofiticationbe.Utils.RsaKeyLoader;
 import org.springframework.core.io.ClassPathResource;
-import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import org.springframework.stereotype.Component;
@@ -33,9 +32,9 @@ public class JwtProvider {
         }
     }
 
-    public String createToken(String username, Admin.Role role) {
+    public String createToken(String userId, Admin.Role role) {
             return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1시간
@@ -57,7 +56,7 @@ public class JwtProvider {
             }
     }
 
-    public String getUsername(String token) {
+    public String getUserId(String token) {
             Claims claims = (Claims) Jwts.parser()
                 .verifyWith(publicKey)
                 .build()
