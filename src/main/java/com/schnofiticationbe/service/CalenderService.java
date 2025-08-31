@@ -23,6 +23,7 @@ public class CalenderService {
                 .title(calender.getTitle())
                 .startDate(calender.getStartDate())
                 .endDate(calender.getEndDate())
+                .type(calender.getType())
                 .build();
     }
 

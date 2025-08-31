@@ -23,6 +23,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/api/notice/**").permitAll()
+                        .requestMatchers("/api/department/**").permitAll()
+                        .requestMatchers("/api/boards/**").permitAll()
+                        .requestMatchers("/api/calenders/**").permitAll()
                         .requestMatchers("/api/swagger-ui/**", "/api/api-docs").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
