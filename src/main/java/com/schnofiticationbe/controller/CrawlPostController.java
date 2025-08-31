@@ -31,4 +31,10 @@ public class CrawlPostController {
     public ResponseEntity<List<Notice>> searchNotices(@RequestParam String keyword) {
         return ResponseEntity.ok(noticeService.searchNotices(keyword));
     }
+
+    //카테고리별 공지사항 조회
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<CrawlPostDto.Response>> getNoticesByCategoryId(@PathVariable Integer categoryId) {
+        return ResponseEntity.ok(noticeService.getAllNoticesByCategoryId(categoryId));
+    }
 }

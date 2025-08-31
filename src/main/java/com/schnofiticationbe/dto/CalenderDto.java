@@ -11,8 +11,6 @@ public class CalenderDto {
     public static class CreateRequest {
         @Size(min = 1, max = 100)
         private String title;
-        @Size(max=1000, message = "내용은 최대 1000자까지 입력 가능합니다.")
-        private String content;
         private String startDate;
         private String endDate;
         private String type;
@@ -24,8 +22,6 @@ public class CalenderDto {
     public static class UpdateRequest {
         @Size(min = 1, max = 100)
         private String title;
-        @Size(max=1000, message = "내용은 최대 1000자까지 입력 가능합니다.")
-        private String content;
         private String startDate;
         private String endDate;
         private String type;
@@ -35,7 +31,6 @@ public class CalenderDto {
     public static class Response {
         private Long id;
         private String title;
-        private String content;
         private String startDate;
         private String endDate;
         private String type;

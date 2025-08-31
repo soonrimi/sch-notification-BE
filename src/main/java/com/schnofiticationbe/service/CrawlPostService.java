@@ -1,8 +1,10 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
+import com.schnofiticationbe.entity.CrawlPage;
 import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
+import com.schnofiticationbe.repository.CrawlPageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CrawlPostService {
     private final CrawlPostsRepository crawlPostsRepository;
+    private final CrawlPageRepository crawlPageRepository;
 
     // 전체 공지 조회
     public List<CrawlPostDto.Response> getAllNotices() {
@@ -37,5 +40,20 @@ public class CrawlPostService {
 
     public List<Notice> searchNotices(String keyword) {
         return crawlPostsRepository.findByTitleContainingOrContentContaining(keyword, keyword);
+    }
+
+    public List<String> getAllDepartments() {
+        return crawlPageRepository.findAll()
+                .stream()
+                .map(CrawlPage::getTitle)
+                .distinct()
+                .toList();
+    }
+//카테고리별 공지사항 조회
+    public List<CrawlPostDto.Response> getAllNoticesByCategoryId(Integer categoryId) {
+        return crawlPostsRepository.findByCategoryId(categoryId)
+                .stream()
+                .map(CrawlPostDto.Response::new)
+                .toList();
     }
 }

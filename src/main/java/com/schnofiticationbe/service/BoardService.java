@@ -62,12 +62,5 @@ public class BoardService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."));
         return new BoardDto.Response(board);
     }
-    /**
-     * 학과명 중복 제거 조회
-     */
-    @Transactional
-    public List<String> getDistinctTitles() {
-        return boardRepository.findDistinctTitleBy();
-    }
 
 }
