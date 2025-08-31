@@ -34,10 +34,6 @@ public class Calender {
     private String endDate;
 
 
-    @Column(name="created_at", columnDefinition = "TIMESTAMP")
-    @Schema(description = "캘린더 이벤트 작성일시", example = "2023-10-01T12:00:00")
-    private Timestamp createdAt;
-
     @Column(name = "type")
     @Schema(description = "캘린더 이벤트 타입", example = "holyday")
     private String type;
