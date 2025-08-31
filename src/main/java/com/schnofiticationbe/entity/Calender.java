@@ -33,10 +33,6 @@ public class Calender {
     @Schema(description = "캘린더 이벤트 종료 날짜", example = "2023-10-02")
     private String endDate;
 
-    @Lob
-    @Column(name = "content", length = 1000, columnDefinition = "TEXT")
-    @Schema(description = "캘린더 이벤트 내용", example = "학교에서 열리는 행사입니다.")
-    private String content;
 
     @Column(name="created_at", columnDefinition = "TIMESTAMP")
     @Schema(description = "캘린더 이벤트 작성일시", example = "2023-10-01T12:00:00")
