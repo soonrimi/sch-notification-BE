@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/boards")
+@RequestMapping("/boards")
 @RequiredArgsConstructor
 @Tag(name = "Board API", description = "건의사항 게시판 CRUD API")
 public class BoardController {
@@ -51,13 +51,6 @@ public class BoardController {
             @Parameter(description = "조회할 게시물 ID", required = true) @PathVariable Long id) {
         BoardDto.Response board = boardService.getBoardById(id);
         return ResponseEntity.ok(board);
-    }
-
-    @GetMapping("/departments")
-    @Operation(summary = "학과명 조회", description = "중복을 제거한 학과명을 조회합니다.")
-    public ResponseEntity<List<String>> getDistinctTitles() {
-        List<String> titles = boardService.getDistinctTitles();
-        return ResponseEntity.ok(titles);
     }
 
 }
