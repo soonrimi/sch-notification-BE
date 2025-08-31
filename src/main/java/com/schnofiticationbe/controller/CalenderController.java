@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/calenders")
+@RequestMapping("/calenders")
 @RequiredArgsConstructor
 @Tag(name = "Calender API", description = "캘린더 CRUD API")
 public class CalenderController {
