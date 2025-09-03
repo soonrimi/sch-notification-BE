@@ -69,8 +69,8 @@ public class InternalNoticeDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class Response {
-        private Long id;
+    public static class InternalNoticeResponse {
+        private long id;
         private String title;
         private String content;
         private Timestamp createdAt;
@@ -80,11 +80,11 @@ public class InternalNoticeDto {
         private Department targetDept;
         private List<AttachmentResponse> attachments;
 
-        public Response(com.schnofiticationbe.entity.InternalNotice notice) {
+        public InternalNoticeResponse(com.schnofiticationbe.entity.InternalNotice notice) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            //this.createdAt = notice.getCreatedAt();
+            this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.writerName = notice.getWriter().getName();
             this.targetYear = notice.getTargetYear();
