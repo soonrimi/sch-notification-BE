@@ -1,8 +1,8 @@
-package conconccc.schnofiticationbe.controller;
+package com.schnofiticationbe.controller;
 
-import conconccc.schnofiticationbe.dto.SubscribeDto;
-import conconccc.schnofiticationbe.entity.Subscribe;
-import conconccc.schnofiticationbe.service.SubscribeService;
+import com.schnofiticationbe.dto.SubscribeDto;
+import com.schnofiticationbe.entity.Subscribe;
+import com.schnofiticationbe.service.SubscribeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
