@@ -3,9 +3,12 @@ package com.schnofiticationbe.dto;
 import com.schnofiticationbe.entity.Subscribe;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
+@Getter
 
 public class SubscribeDto {
 

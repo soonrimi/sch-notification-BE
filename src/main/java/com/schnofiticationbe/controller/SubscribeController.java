@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/subscribe")
+@RequestMapping("/subscribe")
 public class SubscribeController {
 
     private final SubscribeService subscribeService;
