@@ -1,7 +1,9 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.AdminDto;
+import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.repository.InternalNoticeRepository;
+import com.schnofiticationbe.repository.LessonRepository;
 import com.schnofiticationbe.security.jwt.JwtProvider;
 import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.entity.Admin;
@@ -32,21 +34,25 @@ public class AdminService {
     private final AttachmentRepository attachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
+    private final LessonRepository lessonRepository;
 
     // 공지 생성 (InternalNotice)
-    public InternalNoticeDto.Response createInternalNotice(String jwtToken, InternalNoticeDto.CreateRequest req, List<MultipartFile> files) {
+    public InternalNoticeDto.InternalNoticeResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateRequest req, List<MultipartFile> files) {
         String userId = jwtProvider.getUserId(jwtToken);
         Admin admin = adminRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("관리자가 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
+
+        Department department = lessonRepository.findById(req.getTargetDept())
+                .orElseThrow(() -> new IllegalArgumentException("해당 학과 정보가 존재하지 않습니다."));
 
         InternalNotice notice = new InternalNotice();
         notice.setTitle(req.getTitle());
         notice.setContent(req.getContent());
         notice.setWriter(admin);
-        //notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         notice.setViewCount(0);
         notice.setTargetYear(req.getTargetYear());
-        notice.setTargetDept(req.getTargetDept());
+        notice.setTargetDept(department);
 
         InternalNotice savedNotice = internalNoticeRepository.save(notice);
 
@@ -63,7 +69,7 @@ public class AdminService {
                 }
             }
         }
-        return new InternalNoticeDto.Response(savedNotice);
+        return new InternalNoticeDto.InternalNoticeResponse(savedNotice);
     }
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
@@ -152,13 +158,17 @@ public class AdminService {
                 ));
     }
 
-    public List<InternalNoticeDto.Response> getMyInternalNotice(String jwtToken) {
+    public List<InternalNoticeDto.InternalNoticeResponse> getMyInternalNotice(String jwtToken) {
         String userId = jwtProvider.getUserId(jwtToken);
         Admin getCurrentAdmin = adminRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
-        return notices.stream().map(InternalNoticeDto.Response::new).toList();
+        return notices.stream().map(InternalNoticeDto.InternalNoticeResponse::new).toList();
+    }
+
+    public List<Department> getAllDepartment() {
+        return lessonRepository.findAll().stream().toList();
     }
 
 }
