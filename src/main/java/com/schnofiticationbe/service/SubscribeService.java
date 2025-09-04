@@ -1,7 +1,7 @@
-package conconccc.schnofiticationbe.service;
+package com.schnofiticationbe.service;
 
-import conconccc.schnofiticationbe.entity.Subscribe;
-import conconccc.schnofiticationbe.repository.SubscribeRepository;
+import com.schnofiticationbe.entity.Subscribe;
+import com.schnofiticationbe.repository.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
