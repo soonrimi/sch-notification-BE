@@ -26,8 +26,8 @@ public abstract class Notice{
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    //@Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
-    //private Timestamp createdAt;
+    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
+    private Timestamp createdAt;
 
     private int viewCount; // 조회수
 
