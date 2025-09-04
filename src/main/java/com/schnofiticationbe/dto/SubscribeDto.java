@@ -1,6 +1,6 @@
-package conconccc.schnofiticationbe.dto;
+package com.schnofiticationbe.dto;
 
-import conconccc.schnofiticationbe.entity.Subscribe;
+import com.schnofiticationbe.entity.Subscribe;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
