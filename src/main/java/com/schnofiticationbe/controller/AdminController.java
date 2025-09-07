@@ -64,4 +64,27 @@ public class AdminController {
     public ResponseEntity<List<Department>> getAllDepartment() {
         return ResponseEntity.ok(adminService.getAllDepartment());
     }
+
+    @GetMapping("/my-info")
+    public ResponseEntity<AdminDto.MyInfoResponse> getMyInfo(
+            @RequestHeader("Authorization") String authorization
+    ) {
+        return ResponseEntity.ok(adminService.getMyInfo(authorization));
+    }
+
+    @PutMapping("/my-info")
+    public ResponseEntity<AdminDto.MyInfoResponse> updateMyInfo(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody AdminDto.UpdateRequest req
+    ) {
+        return ResponseEntity.ok(adminService.updateMyInfo(authorization, req));
+    }
+
+    @DeleteMapping("/my-info")
+    public ResponseEntity<AdminDto.DeleteResponse> deleteMyInfo(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody AdminDto.DeleteRequest req
+    ) {
+        return ResponseEntity.ok(adminService.deleteMyInfo(authorization, req));
+    }
 }

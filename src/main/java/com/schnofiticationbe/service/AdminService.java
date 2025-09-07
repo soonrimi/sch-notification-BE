@@ -171,4 +171,52 @@ public class AdminService {
         return lessonRepository.findAll().stream().toList();
     }
 
+    public AdminDto.MyInfoResponse getMyInfo(String jwtToken) {
+        String userId = jwtProvider.getUserId(jwtToken);
+
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
+
+        return new AdminDto.MyInfoResponse(admin);
+    }
+
+    public AdminDto.MyInfoResponse updateMyInfo(String jwtToken, AdminDto.UpdateRequest req) {
+        String userId = jwtProvider.getUserId(jwtToken);
+
+        if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
+        }
+
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
+
+        // 값이 들어온 항목만 업데이트
+        if (req.getName() != null && !req.getName().isBlank()) {
+            admin.setName(req.getName());
+        }
+        if (req.getAffiliation() != null && !req.getAffiliation().isBlank()) {
+            admin.setAffiliation(req.getAffiliation());
+        }
+        if (req.getPassword() != null && !req.getPassword().isBlank()) {
+            admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+        }
+
+        Admin saved = adminRepository.save(admin);
+        return new AdminDto.MyInfoResponse(saved);
+    }
+
+    public AdminDto.DeleteResponse deleteMyInfo(String jwtToken, AdminDto.DeleteRequest req) {
+        String userId = jwtProvider.getUserId(jwtToken);
+
+        if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
+        }
+
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
+
+        adminRepository.delete(admin);
+
+        return new AdminDto.DeleteResponse("계정이 삭제되었습니다.");
+    }
 }
