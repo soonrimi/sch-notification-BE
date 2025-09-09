@@ -171,26 +171,21 @@ public class AdminService {
         return lessonRepository.findAll().stream().toList();
     }
 
-    public AdminDto.MyInfoResponse getMyInfo(String jwtToken) {
-        String userId = jwtProvider.getUserId(jwtToken);
-
-        Admin admin = adminRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
-
-        return new AdminDto.MyInfoResponse(admin);
+    public List<AdminDto.MyInfoResponse> getAllAdmins() {
+        return adminRepository.findAll()
+                .stream()
+                .map(AdminDto.MyInfoResponse::new)
+                .toList();
     }
 
-    public AdminDto.MyInfoResponse updateMyInfo(String jwtToken, AdminDto.UpdateRequest req) {
-        String userId = jwtProvider.getUserId(jwtToken);
-
+    public AdminDto.MyInfoResponse updateAdmin(Long adminId, AdminDto.AdminUpdateRequest req) {
         if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
         }
 
-        Admin admin = adminRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
-        // 값이 들어온 항목만 업데이트
         if (req.getName() != null && !req.getName().isBlank()) {
             admin.setName(req.getName());
         }
@@ -205,18 +200,15 @@ public class AdminService {
         return new AdminDto.MyInfoResponse(saved);
     }
 
-    public AdminDto.DeleteResponse deleteMyInfo(String jwtToken, AdminDto.DeleteRequest req) {
-        String userId = jwtProvider.getUserId(jwtToken);
-
+    public AdminDto.MessageResponse deleteAdmin(Long adminId, AdminDto.AdminDeleteRequest req) {
         if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
         }
 
-        Admin admin = adminRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "계정을 찾을 수 없습니다."));
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
         adminRepository.delete(admin);
-
-        return new AdminDto.DeleteResponse("계정이 삭제되었습니다.");
+        return new AdminDto.MessageResponse("관리자 계정이 삭제되었습니다.");
     }
 }

@@ -65,26 +65,25 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllDepartment());
     }
 
-    @GetMapping("/my-info")
-    public ResponseEntity<AdminDto.MyInfoResponse> getMyInfo(
-            @RequestHeader("Authorization") String authorization
-    ) {
-        return ResponseEntity.ok(adminService.getMyInfo(authorization));
+    @GetMapping("/list")
+    public ResponseEntity<List<AdminDto.MyInfoResponse>> getAllAdmins() {
+        return ResponseEntity.ok(adminService.getAllAdmins());
     }
 
-    @PutMapping("/my-info")
-    public ResponseEntity<AdminDto.MyInfoResponse> updateMyInfo(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody AdminDto.UpdateRequest req
+    @PutMapping("/{adminId}")
+    public ResponseEntity<AdminDto.MyInfoResponse> updateAdmin(
+            @PathVariable Long adminId,
+            @RequestBody AdminDto.AdminUpdateRequest req
     ) {
-        return ResponseEntity.ok(adminService.updateMyInfo(authorization, req));
+        return ResponseEntity.ok(adminService.updateAdmin(adminId, req));
     }
 
-    @DeleteMapping("/my-info")
-    public ResponseEntity<AdminDto.DeleteResponse> deleteMyInfo(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody AdminDto.DeleteRequest req
+    @DeleteMapping("/{adminId}")
+    public ResponseEntity<AdminDto.MessageResponse> deleteAdmin(
+            @PathVariable Long adminId,
+            @RequestBody AdminDto.AdminDeleteRequest req
     ) {
-        return ResponseEntity.ok(adminService.deleteMyInfo(authorization, req));
+        return ResponseEntity.ok(adminService.deleteAdmin(adminId, req));
     }
+
 }

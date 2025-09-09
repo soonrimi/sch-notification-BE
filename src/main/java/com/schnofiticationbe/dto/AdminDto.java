@@ -91,22 +91,22 @@ public class AdminDto {
     }
 
     @Getter @Setter
-    public static class UpdateRequest {
+    public static class AdminUpdateRequest {
         private String name;
         private String affiliation;
         private String password;
-        private String registerPassword;
+        private String registerPassword; // 보안 비밀번호
     }
 
     @Getter @Setter
-    public static class DeleteRequest {
-        private String registerPassword;
+    public static class AdminDeleteRequest {
+        private String registerPassword; // 보안 비밀번호
     }
 
     @Getter
-    @Setter
     @AllArgsConstructor
-    public static class DeleteResponse {
+    public static class MessageResponse {
         private String message;
     }
+
 }
