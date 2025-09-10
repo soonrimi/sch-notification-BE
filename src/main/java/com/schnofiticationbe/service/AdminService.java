@@ -171,4 +171,44 @@ public class AdminService {
         return lessonRepository.findAll().stream().toList();
     }
 
+    public List<AdminDto.MyInfoResponse> getAllAdmins() {
+        return adminRepository.findAll()
+                .stream()
+                .map(AdminDto.MyInfoResponse::new)
+                .toList();
+    }
+
+    public AdminDto.MyInfoResponse updateAdmin(Long adminId, AdminDto.AdminUpdateRequest req) {
+        if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
+        }
+
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        if (req.getName() != null && !req.getName().isBlank()) {
+            admin.setName(req.getName());
+        }
+        if (req.getAffiliation() != null && !req.getAffiliation().isBlank()) {
+            admin.setAffiliation(req.getAffiliation());
+        }
+        if (req.getPassword() != null && !req.getPassword().isBlank()) {
+            admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+        }
+
+        Admin saved = adminRepository.save(admin);
+        return new AdminDto.MyInfoResponse(saved);
+    }
+
+    public AdminDto.MessageResponse deleteAdmin(Long adminId, AdminDto.AdminDeleteRequest req) {
+        if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
+        }
+
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        adminRepository.delete(admin);
+        return new AdminDto.MessageResponse("관리자 계정이 삭제되었습니다.");
+    }
 }
