@@ -22,20 +22,9 @@ public class Category {
     @Schema(description = "카테고리 이름", example = "공지사항")
     private String categoryName;
 
-<<<<<<< HEAD
-    @OneToMany(mappedBy = "category")
-    private Set<FetchedNotice> fetchedNotices = new LinkedHashSet<>();
-
-=======
->>>>>>> 0a5c4b4 (feat : 카테고리 종류 조회 api 추가)
     @Builder
     public Category(String categoryName) {
         this.categoryName = categoryName;
     }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 0a5c4b4 (feat : 카테고리 종류 조회 api 추가)
 }
