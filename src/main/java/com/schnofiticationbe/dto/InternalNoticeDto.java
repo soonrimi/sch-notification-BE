@@ -36,7 +36,7 @@ public class InternalNoticeDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class CreateRequest {
+    public static class CreateInternalNoticeRequest {
         private String title;
         private String content;
         private InternalNotice.TargetYear targetYear;
@@ -44,7 +44,7 @@ public class InternalNoticeDto {
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-    public static class UpdateRequest {
+    public static class UpdateInternalNoticeRequest {
         private String title;
         private String content;
         private String writer;
@@ -53,11 +53,11 @@ public class InternalNoticeDto {
 
 
     @Getter
-    public static class AttachmentResponse {
+    public static class InternalNoticeAttachmentResponse {
         private String fileName;
         private String fileUrl;
 
-        public AttachmentResponse(Attachment attachment) {
+        public InternalNoticeAttachmentResponse(Attachment attachment) {
             this.fileName = attachment.getFileName();
             this.fileUrl = attachment.getFileUrl();
         }
@@ -69,7 +69,7 @@ public class InternalNoticeDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class InternalNoticeResponse {
+    public static class InternalNoticeListResponse {
         private long id;
         private String title;
         private String content;
@@ -78,9 +78,9 @@ public class InternalNoticeDto {
         private String writerName;
         private InternalNotice.TargetYear targetYear;
         private Department targetDept;
-        private List<AttachmentResponse> attachments;
+        private List<InternalNoticeAttachmentResponse> attachments;
 
-        public InternalNoticeResponse(com.schnofiticationbe.entity.InternalNotice notice) {
+        public InternalNoticeListResponse(com.schnofiticationbe.entity.InternalNotice notice) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
@@ -90,7 +90,7 @@ public class InternalNoticeDto {
             this.targetYear = notice.getTargetYear();
             this.targetDept = notice.getTargetDept();
             this.attachments = notice.getAttachments().stream()
-                    .map(attachment -> new AttachmentResponse(attachment))
+                    .map(attachment -> new InternalNoticeAttachmentResponse(attachment))
                     .collect(Collectors.toList());
         }
     }

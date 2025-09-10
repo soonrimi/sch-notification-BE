@@ -40,7 +40,7 @@ public class CrawlPostDto {
     }
 
     @Getter
-    public static class Response {
+    public static class CrawlPostsResponse {
         private Long id;
         private String title;
         private String content;
@@ -48,7 +48,7 @@ public class CrawlPostDto {
         private int viewCount;
         private List<AttachmentResponse> attachments;
 
-        public Response(Notice notice) {
+        public CrawlPostsResponse(Notice notice) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();

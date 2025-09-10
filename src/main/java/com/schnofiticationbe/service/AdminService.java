@@ -37,7 +37,7 @@ public class AdminService {
     private final LessonRepository lessonRepository;
 
     // 공지 생성 (InternalNotice)
-    public InternalNoticeDto.InternalNoticeResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateRequest req, List<MultipartFile> files) {
+    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
         String userId = jwtProvider.getUserId(jwtToken);
         Admin admin = adminRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
@@ -53,6 +53,7 @@ public class AdminService {
         notice.setViewCount(0);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(department);
+        notice.setSentToKakao(false);
 
         InternalNotice savedNotice = internalNoticeRepository.save(notice);
 
@@ -69,7 +70,7 @@ public class AdminService {
                 }
             }
         }
-        return new InternalNoticeDto.InternalNoticeResponse(savedNotice);
+        return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
     }
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
@@ -158,13 +159,13 @@ public class AdminService {
                 ));
     }
 
-    public List<InternalNoticeDto.InternalNoticeResponse> getMyInternalNotice(String jwtToken) {
+    public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(String jwtToken) {
         String userId = jwtProvider.getUserId(jwtToken);
         Admin getCurrentAdmin = adminRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
-        return notices.stream().map(InternalNoticeDto.InternalNoticeResponse::new).toList();
+        return notices.stream().map(InternalNoticeDto.InternalNoticeListResponse::new).toList();
     }
 
     public List<Department> getAllDepartment() {
