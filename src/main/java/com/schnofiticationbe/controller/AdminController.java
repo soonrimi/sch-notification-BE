@@ -64,4 +64,26 @@ public class AdminController {
     public ResponseEntity<List<Department>> getAllDepartment() {
         return ResponseEntity.ok(adminService.getAllDepartment());
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<AdminDto.MyInfoResponse>> getAllAdmins() {
+        return ResponseEntity.ok(adminService.getAllAdmins());
+    }
+
+    @PutMapping("/{adminId}")
+    public ResponseEntity<AdminDto.MyInfoResponse> updateAdmin(
+            @PathVariable Long adminId,
+            @RequestBody AdminDto.AdminUpdateRequest req
+    ) {
+        return ResponseEntity.ok(adminService.updateAdmin(adminId, req));
+    }
+
+    @DeleteMapping("/{adminId}")
+    public ResponseEntity<AdminDto.MessageResponse> deleteAdmin(
+            @PathVariable Long adminId,
+            @RequestBody AdminDto.AdminDeleteRequest req
+    ) {
+        return ResponseEntity.ok(adminService.deleteAdmin(adminId, req));
+    }
+
 }

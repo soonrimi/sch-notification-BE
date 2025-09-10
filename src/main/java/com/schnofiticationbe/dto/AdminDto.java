@@ -2,6 +2,7 @@ package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.entity.InternalNotice;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -76,4 +77,36 @@ public class AdminDto {
             this.tempPassword = tempPassword;
         }
     }
+
+    public record MyInfoResponse(
+            String name,
+            String affiliation
+    ) {
+        public MyInfoResponse(Admin admin) {
+            this(
+                    admin.getName(),
+                    admin.getAffiliation()
+            );
+        }
+    }
+
+    @Getter @Setter
+    public static class AdminUpdateRequest {
+        private String name;
+        private String affiliation;
+        private String password;
+        private String registerPassword; // 보안 비밀번호
+    }
+
+    @Getter @Setter
+    public static class AdminDeleteRequest {
+        private String registerPassword; // 보안 비밀번호
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class MessageResponse {
+        private String message;
+    }
+
 }
