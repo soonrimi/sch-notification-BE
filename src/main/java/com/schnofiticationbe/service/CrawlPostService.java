@@ -20,21 +20,21 @@ public class CrawlPostService {
     private final CrawlPageRepository crawlPageRepository;
 
     // 전체 공지 조회
-    public List<CrawlPostDto.Response> getAllNotices() {
+    public List<CrawlPostDto.CrawlPostsResponse> getAllNotices() {
         return crawlPostsRepository.findAll()
                 .stream()
-                .map(CrawlPostDto.Response::new)
+                .map(CrawlPostDto.CrawlPostsResponse::new)
                 .toList();
     }
 
     // 단일 공지 조회
-    public CrawlPostDto.Response getNotice(Long id) {
+    public CrawlPostDto.CrawlPostsResponse getNotice(Long id) {
         CrawlPosts crawlPost = crawlPostsRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
 
         crawlPost.setViewCount(crawlPost.getViewCount() + 1); // 조회수 증가
         CrawlPosts saved = crawlPostsRepository.save(crawlPost);
-        return new CrawlPostDto.Response(saved);
+        return new CrawlPostDto.CrawlPostsResponse(saved);
     }
 
 
@@ -50,10 +50,10 @@ public class CrawlPostService {
                 .toList();
     }
 //카테고리별 공지사항 조회
-    public List<CrawlPostDto.Response> getAllNoticesByCategoryId(Integer categoryId) {
+    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategoryId(Integer categoryId) {
         return crawlPostsRepository.findByCategoryId(categoryId)
                 .stream()
-                .map(CrawlPostDto.Response::new)
+                .map(CrawlPostDto.CrawlPostsResponse::new)
                 .toList();
     }
 }
