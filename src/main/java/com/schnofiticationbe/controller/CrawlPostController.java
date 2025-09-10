@@ -17,12 +17,12 @@ public class CrawlPostController {
     private final CrawlPostService noticeService;
 
     @GetMapping
-    public ResponseEntity<List<CrawlPostDto.Response>> getAllNotices() {
+    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getAllNotices() {
         return ResponseEntity.ok(noticeService.getAllNotices());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CrawlPostDto.Response> getNotice(@PathVariable Long id) {
+    public ResponseEntity<CrawlPostDto.CrawlPostsResponse> getNotice(@PathVariable Long id) {
 
         return ResponseEntity.ok(noticeService.getNotice(id));
     }
@@ -34,7 +34,7 @@ public class CrawlPostController {
 
     //카테고리별 공지사항 조회
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<CrawlPostDto.Response>> getNoticesByCategoryId(@PathVariable Integer categoryId) {
+    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Integer categoryId) {
         return ResponseEntity.ok(noticeService.getAllNoticesByCategoryId(categoryId));
     }
 }

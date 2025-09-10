@@ -40,5 +40,6 @@ public class InternalNotice extends Notice {
     @JoinColumn(nullable = false)
     private Department targetDept;
 
-    // InternalNotice만의 추가 필드가 있다면 여기에 작성
+    @Column(nullable = false)
+    private boolean sentToKakao;
 }
