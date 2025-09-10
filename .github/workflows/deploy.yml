@@ -31,7 +31,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          source: "soonrimi-be.tar,docker-compose.yml"
+          source: "soonrimi-be.tar,docker-compose.yml,filebeat.yml"
           target: "/home/${{ secrets.SERVER_USER }}/soonrimi-be/"
 
       - name: Create .env file on server
@@ -60,6 +60,9 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             cd /home/${{ secrets.SERVER_USER }}/soonrimi-be
+
+            # filebeat.yml 소유자 변경
+            sudo chown root:root filebeat.yml
 
             # Docker 이미지 로드
             docker load < soonrimi-be.tar
