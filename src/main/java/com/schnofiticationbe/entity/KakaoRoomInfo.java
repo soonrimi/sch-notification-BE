@@ -1,11 +1,16 @@
 package com.schnofiticationbe.entity;
 
+import com.schnofiticationbe.dto.KakaoRoomInfoDto;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class KakaoRoomInfo {
 
     @Id
@@ -21,6 +26,14 @@ public class KakaoRoomInfo {
     private InternalNotice.TargetYear targetYear;
 
     @Setter
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String roomName;
+
+    public static KakaoRoomInfo from(KakaoRoomInfoDto.CreateKakaoRoomInfoRequest dto) {
+        KakaoRoomInfo entity = new KakaoRoomInfo();
+        entity.lessonId = dto.getLessonId();
+        entity.targetYear = InternalNotice.TargetYear.valueOf(dto.getTargetYear());
+        entity.roomName = dto.getRoomName();
+        return entity;
+    }
 }
