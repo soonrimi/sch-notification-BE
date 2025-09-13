@@ -1,8 +1,10 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.KakaoRoomInfoDto;
+import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.entity.InternalNotice;
 import com.schnofiticationbe.entity.KakaoRoomInfo;
+import com.schnofiticationbe.repository.DepartmentRepository;
 import com.schnofiticationbe.repository.KakaoRoomInfoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KakaoRoomInfoService {
     private final KakaoRoomInfoRepository kakaoRoomInfoRepository;
+    private final DepartmentRepository departmentRepository;
 
     // CREATE KakaoRoom
     @Transactional
     public KakaoRoomInfoDto.KakaoRoomInfoResponse createKakaoRoomInfo(KakaoRoomInfoDto.CreateKakaoRoomInfoRequest request) {
-        KakaoRoomInfo newKakaoRoomInfo = KakaoRoomInfo.from(request);
+        Department department = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + request.getDepartmentId()));
+        KakaoRoomInfo newKakaoRoomInfo = KakaoRoomInfo.from(department, request);
         KakaoRoomInfo savedInfo=kakaoRoomInfoRepository.save(newKakaoRoomInfo);
         return new KakaoRoomInfoDto.KakaoRoomInfoResponse(savedInfo);
     }
@@ -40,8 +45,11 @@ public class KakaoRoomInfoService {
         KakaoRoomInfo existingKakaoRoomInfo = kakaoRoomInfoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("KakaoRoomInfo not found with id: " + id));
 
-        existingKakaoRoomInfo.setLessonId(request.getLessonId());
-        existingKakaoRoomInfo.setTargetYear(InternalNotice.TargetYear.valueOf(request.getTargetYear()));
+        Department department = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + request.getDepartmentId()));
+        existingKakaoRoomInfo.setDepartment(department);
+        existingKakaoRoomInfo.setTargetYear(request.getTargetYear());
+        existingKakaoRoomInfo.setRoomName(request.getRoomName());
 
         KakaoRoomInfo updatedInfo = kakaoRoomInfoRepository.save(existingKakaoRoomInfo);
         return new KakaoRoomInfoDto.KakaoRoomInfoResponse(updatedInfo);
@@ -60,18 +68,16 @@ public class KakaoRoomInfoService {
     public List<KakaoRoomInfoDto.KakaoRoomInfoResponse> findRoomsByCriteria(InternalNotice.TargetYear targetYear, Long lessonId) {
         List<KakaoRoomInfo> results;
 
-        if (lessonId != null && targetYear != null) {
-            // 1. lessonId와 targetYear가 모두 있는 경우
-            results = kakaoRoomInfoRepository.findByLessonIdAndTargetYear(lessonId, targetYear);
-        } else if (lessonId != null) {
-            // 2. lessonId만 있는 경우
-            results = kakaoRoomInfoRepository.findAllByLessonId(lessonId);
+        // Since lessonId is not a property, we can only filter by targetYear or return all
+        if (targetYear != null) {
+            // Filter in-memory since no repository method exists
+            results = kakaoRoomInfoRepository.findAll().stream()
+                .filter(room -> room.getTargetYear() == targetYear)
+                .collect(Collectors.toList());
         } else {
-            // 3. 파라미터가 모두 없는 경우 (getAll)
             results = kakaoRoomInfoRepository.findAll();
         }
 
-        // 조회된 Entity 리스트를 DTO 리스트로 변환하여 반환
         return results.stream()
                 .map(KakaoRoomInfoDto.KakaoRoomInfoResponse::new)
                 .collect(Collectors.toList());
