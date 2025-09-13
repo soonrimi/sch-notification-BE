@@ -1,17 +1,13 @@
 package com.schnofiticationbe.controller;
 
-import com.fasterxml.jackson.core.util.ReadConstrainedTextBuffer;
 import com.schnofiticationbe.dto.KakaoRoomInfoDto;
-import com.schnofiticationbe.entity.InternalNotice;
+import com.schnofiticationbe.entity.TargetYear;
 import com.schnofiticationbe.service.KakaoRoomInfoService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.management.DescriptorKey;
 import java.util.List;
 
 @RestController
@@ -51,7 +47,7 @@ public class KakaoRoomInfoController {
     @GetMapping
     public ResponseEntity<List<KakaoRoomInfoDto.KakaoRoomInfoResponse>> getRoomsByFilter(
             @RequestParam(required = false) Long lessonId,
-            @RequestParam(required = false) InternalNotice.TargetYear  targetyear
+            @RequestParam(required = false) TargetYear targetyear
     ) {
         List<KakaoRoomInfoDto.KakaoRoomInfoResponse> rooms = kakaoRoomInfoService.findRoomsByCriteria(targetyear, lessonId);
         return ResponseEntity.ok(rooms);

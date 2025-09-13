@@ -34,7 +34,7 @@ public class CrawlPostController {
 
     //카테고리별 공지사항 조회
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Integer categoryId) {
+    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Long categoryId) {
         return ResponseEntity.ok(noticeService.getAllNoticesByCategoryId(categoryId));
     }
 }

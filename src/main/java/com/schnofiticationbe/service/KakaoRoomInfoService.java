@@ -2,8 +2,8 @@ package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.KakaoRoomInfoDto;
 import com.schnofiticationbe.entity.Department;
-import com.schnofiticationbe.entity.InternalNotice;
 import com.schnofiticationbe.entity.KakaoRoomInfo;
+import com.schnofiticationbe.entity.TargetYear;
 import com.schnofiticationbe.repository.DepartmentRepository;
 import com.schnofiticationbe.repository.KakaoRoomInfoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -65,7 +65,7 @@ public class KakaoRoomInfoService {
     }
 
     @Transactional(readOnly = true)
-    public List<KakaoRoomInfoDto.KakaoRoomInfoResponse> findRoomsByCriteria(InternalNotice.TargetYear targetYear, Long lessonId) {
+    public List<KakaoRoomInfoDto.KakaoRoomInfoResponse> findRoomsByCriteria(TargetYear targetYear, Long lessonId) {
         List<KakaoRoomInfo> results;
 
         // Since lessonId is not a property, we can only filter by targetYear or return all

@@ -2,8 +2,8 @@ package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.AdminDto;
 import com.schnofiticationbe.entity.Department;
+import com.schnofiticationbe.repository.DepartmentRepository;
 import com.schnofiticationbe.repository.InternalNoticeRepository;
-import com.schnofiticationbe.repository.LessonRepository;
 import com.schnofiticationbe.security.jwt.JwtProvider;
 import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.entity.Admin;
@@ -20,9 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-
 
 
 @Service
@@ -34,7 +35,7 @@ public class AdminService {
     private final AttachmentRepository attachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
-    private final LessonRepository lessonRepository;
+    private final DepartmentRepository departmentRepository;
 
     // 공지 생성 (InternalNotice)
     public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
@@ -42,8 +43,7 @@ public class AdminService {
         Admin admin = adminRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
 
-        Department department = lessonRepository.findById(req.getTargetDept())
-                .orElseThrow(() -> new IllegalArgumentException("해당 학과 정보가 존재하지 않습니다."));
+        Set<Department> departments = new HashSet<>(departmentRepository.findAllById(req.getTargetDepartmentIds()));
 
         InternalNotice notice = new InternalNotice();
         notice.setTitle(req.getTitle());
@@ -52,7 +52,7 @@ public class AdminService {
         notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         notice.setViewCount(0);
         notice.setTargetYear(req.getTargetYear());
-        notice.setTargetDept(department);
+        notice.setTargetDept(departments);
         notice.setSentToKakao(false);
 
         InternalNotice savedNotice = internalNoticeRepository.save(notice);
@@ -169,7 +169,7 @@ public class AdminService {
     }
 
     public List<Department> getAllDepartment() {
-        return lessonRepository.findAll().stream().toList();
+        return departmentRepository.findAll().stream().toList();
     }
 
     public List<AdminDto.MyInfoResponse> getAllAdmins() {

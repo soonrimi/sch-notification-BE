@@ -12,13 +12,13 @@ import java.util.Set;
 @Entity
 @Getter
 @NoArgsConstructor
+@Schema(requiredProperties = {"id", "categoryName"})
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
-
     @Schema(description = "카테고리 이름", example = "공지사항")
     private String categoryName;
 
@@ -26,5 +26,4 @@ public class Category {
     public Category(String categoryName) {
         this.categoryName = categoryName;
     }
-
 }

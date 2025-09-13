@@ -1,33 +1,21 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "writer", "targetYear", "targetDept", "sentToKakao"})
 @DiscriminatorValue("InternalNotice")
 public class InternalNotice extends Notice {
-    public enum TargetYear {
-        ALL_YEARS("전체"),
-        FIRST_YEAR("1학년"),
-        SECOND_YEAR("2학년"),
-        THIRD_YEAR("3학년"),
-        FOURTH_YEAR("4학년");
 
-        private final String description;
-
-        TargetYear(String description) {
-            this.description = description;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
 
     @ManyToOne
     @JoinColumn(name = "writer", nullable = false)
@@ -36,10 +24,15 @@ public class InternalNotice extends Notice {
     @Column(nullable = false)
     private TargetYear targetYear;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    private Department targetDept;
+    @ManyToMany()
+    @JoinTable(
+            name = "internal_notice_target_dept",
+            joinColumns = @JoinColumn(name = "internal_notice_id"),
+            inverseJoinColumns = @JoinColumn(name = "department_id")
+    )
+    private Set<Department> targetDept;
 
     @Column(nullable = false)
     private boolean sentToKakao;
 }
+
