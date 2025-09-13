@@ -24,7 +24,7 @@ public class KakaoRoomInfo {
 
     @Setter
     @Column(nullable = false)
-    private InternalNotice.TargetYear targetYear;
+    private TargetYear targetYear;
 
     @Setter
     @Column(nullable = false)

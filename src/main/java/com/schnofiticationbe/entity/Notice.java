@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "attachments"})
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @DiscriminatorValue("NOTICE")
 public abstract class Notice{
@@ -33,5 +35,8 @@ public abstract class Notice{
 
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
+
+    @Column()
+    private Category category;
 
 }

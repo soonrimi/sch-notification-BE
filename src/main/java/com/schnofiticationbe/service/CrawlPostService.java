@@ -1,6 +1,7 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
+import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.CrawlPage;
 import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
@@ -12,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.schnofiticationbe.repository.CrawlPostsRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +52,8 @@ public class CrawlPostService {
                 .toList();
     }
 //카테고리별 공지사항 조회
-    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategoryId(Integer categoryId) {
-        return crawlPostsRepository.findByCategoryId(categoryId)
+    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategory(Category category) {
+        return crawlPostsRepository.findByCategory(category)
                 .stream()
                 .map(CrawlPostDto.CrawlPostsResponse::new)
                 .toList();

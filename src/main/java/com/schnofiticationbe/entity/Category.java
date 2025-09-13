@@ -1,30 +1,20 @@
 package com.schnofiticationbe.entity;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+public enum Category {
+    UNIVERSITY("대학"),
+    DEPARTMENT("학과"),
+    GRADE("학년"),
+    RECRUIT("채용"),
+    ACTIVITY("활동"),
+    PROMOTION("홍보");
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+    private final String description;
 
-@Entity
-@Getter
-@NoArgsConstructor
-public class Category {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-
-    @Schema(description = "카테고리 이름", example = "공지사항")
-    private String categoryName;
-
-    @Builder
-    public Category(String categoryName) {
-        this.categoryName = categoryName;
+    Category(String description) {
+        this.description = description;
     }
 
+    public String getDescription() {
+        return description;
+    }
 }

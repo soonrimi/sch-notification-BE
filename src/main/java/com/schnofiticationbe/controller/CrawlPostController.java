@@ -2,6 +2,7 @@ package com.schnofiticationbe.controller;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
 
+import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.Notice;
 import com.schnofiticationbe.service.CrawlPostService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class CrawlPostController {
 
     //카테고리별 공지사항 조회
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Integer categoryId) {
-        return ResponseEntity.ok(noticeService.getAllNoticesByCategoryId(categoryId));
+    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Category category) {
+        return ResponseEntity.ok(noticeService.getAllNoticesByCategory(category));
     }
 }
