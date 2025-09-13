@@ -18,8 +18,9 @@ public class KakaoRoomInfo {
     private Long id;
 
     @Setter
-    @Column(nullable = false)
-    private Long lessonId;
+    @ManyToOne()
+    @JoinColumn()
+    private Department department;
 
     @Setter
     @Column(nullable = false)
@@ -29,10 +30,10 @@ public class KakaoRoomInfo {
     @Column(nullable = false)
     private String roomName;
 
-    public static KakaoRoomInfo from(KakaoRoomInfoDto.CreateKakaoRoomInfoRequest dto) {
+    public static KakaoRoomInfo from(Department department, KakaoRoomInfoDto.CreateKakaoRoomInfoRequest dto) {
         KakaoRoomInfo entity = new KakaoRoomInfo();
-        entity.lessonId = dto.getLessonId();
-        entity.targetYear = InternalNotice.TargetYear.valueOf(dto.getTargetYear());
+        entity.department = department;
+        entity.targetYear = dto.getTargetYear();
         entity.roomName = dto.getRoomName();
         return entity;
     }
