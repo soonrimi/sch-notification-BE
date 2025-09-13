@@ -25,6 +25,4 @@ public class CrawlPosts extends Notice {
     @Column()
     private int categoryId;
 
-    @Column()
-    private String postTime;
 }
