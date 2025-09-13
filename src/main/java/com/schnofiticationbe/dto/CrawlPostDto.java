@@ -2,6 +2,7 @@ package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Admin;
 import com.schnofiticationbe.entity.Attachment;
+import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.Notice;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,7 @@ public class CrawlPostDto {
         private String title;
         private String content;
         private Timestamp createdAt;
+        private Category category;
         private int viewCount;
         private List<AttachmentResponse> attachments;
 
@@ -52,7 +54,8 @@ public class CrawlPostDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            //this.createdAt = notice.getCreatedAt();
+            this.category = notice.getCategory();
+            this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.attachments = notice.getAttachments().stream()
                 .map(attachment -> new AttachmentResponse(attachment))

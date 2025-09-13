@@ -5,7 +5,6 @@ import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.CrawlPage;
 import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
-import com.schnofiticationbe.repository.CategoryRepository;
 import com.schnofiticationbe.repository.CrawlPageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,6 @@ import java.util.Optional;
 public class CrawlPostService {
     private final CrawlPostsRepository crawlPostsRepository;
     private final CrawlPageRepository crawlPageRepository;
-    private final CategoryRepository categoryRepository;
 
     // 전체 공지 조회
     public List<CrawlPostDto.CrawlPostsResponse> getAllNotices() {
@@ -54,13 +52,8 @@ public class CrawlPostService {
                 .toList();
     }
 //카테고리별 공지사항 조회
-    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategoryId(Long categoryId) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다.");
-        }
-
-        return crawlPostsRepository.findByCategoryId(category.get())
+    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategory(Category category) {
+        return crawlPostsRepository.findByCategory(category)
                 .stream()
                 .map(CrawlPostDto.CrawlPostsResponse::new)
                 .toList();

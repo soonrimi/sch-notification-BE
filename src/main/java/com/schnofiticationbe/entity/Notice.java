@@ -36,8 +36,7 @@ public abstract class Notice{
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
 
-    @ManyToOne()
-    @JoinColumn()
+    @Column()
     private Category category;
 
 }

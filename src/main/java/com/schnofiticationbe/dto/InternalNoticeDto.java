@@ -32,10 +32,11 @@ public class InternalNoticeDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(requiredProperties = {"title", "content", "targetYear", "targetDepartmentIds"})
+    @Schema(requiredProperties = {"title", "content", "category", "targetYear", "targetDepartmentIds"})
     public static class CreateInternalNoticeRequest {
         private String title;
         private String content;
+        private Category category;
         private TargetYear targetYear;
         private Set<Long> targetDepartmentIds;
     }

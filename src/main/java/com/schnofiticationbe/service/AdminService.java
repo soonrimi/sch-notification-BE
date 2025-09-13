@@ -54,6 +54,8 @@ public class AdminService {
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(departments);
         notice.setSentToKakao(false);
+        notice.setCategory(req.getCategory());
+        notice.setTargetDept(departments);
 
         InternalNotice savedNotice = internalNoticeRepository.save(notice);
 
