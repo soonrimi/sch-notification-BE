@@ -32,7 +32,7 @@ public class Attachment {
     }
 
     public void setNotice(Notice notice) {
-        this.setNotice(notice);
+        this.notice = notice;
     }
 
 }
