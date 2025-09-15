@@ -7,7 +7,9 @@ import com.schnofiticationbe.dto.KakaoRoomInfoDto.KakaoRoomInfoResponse;
 import com.schnofiticationbe.dto.UnreadNoticeWithRoomResponse;
 import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.entity.TargetYear;
+import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.repository.KakaoRoomInfoRepository;
+import com.schnofiticationbe.repository.DepartmentRepository;
 import com.schnofiticationbe.entity.InternalNotice;
 import com.schnofiticationbe.repository.InternalNoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.List;
 public class KakaoMessageService {
     private final InternalNoticeRepository internalNoticeRepository;
     private final KakaoRoomInfoRepository kakaoRoomInfoRepository;
+    private final DepartmentRepository departmentRepository;
 
     private static final Logger log = LoggerFactory.getLogger(KakaoMessageService.class);
 
@@ -30,15 +33,26 @@ public class KakaoMessageService {
         List<InternalNotice> unreadNotices = internalNoticeRepository.findBySentToKakaoFalse();
         return unreadNotices.stream().map(notice -> {
             InternalNoticeListResponse noticeDto = new InternalNoticeListResponse(notice);
-            // 여러 부서에 보낼 수 있으므로, 각 부서별로 방을 모두 모은다
-            List<KakaoRoomInfoResponse> rooms = notice.getTargetDept().stream()
-                .flatMap(dept -> kakaoRoomInfoRepository.findByDepartmentAndTargetYear(dept, notice.getTargetYear()).stream())
-                .map(KakaoRoomInfoResponse::new)
-                .toList();
+            List<KakaoRoomInfoResponse> rooms;
+            Category category = notice.getCategory();
+            if (category == Category.DEPARTMENT || category == Category.GRADE) {
+                // 기존 방식: 학과/학년 공지라면 해당 부서/학년 방만
+                rooms = notice.getTargetDept().stream()
+                        .flatMap(dept -> kakaoRoomInfoRepository.findByDepartmentAndTargetYear(dept, notice.getTargetYear()).stream())
+                        .map(KakaoRoomInfoResponse::new)
+                        .toList();
+            } else {
+                // 그 외 카테고리(예: 전체공지)는 모든 학과의 id=0(전체) 방을 모아서 반환
+                rooms = departmentRepository.findAll().stream()
+                        .flatMap(dept -> kakaoRoomInfoRepository.findByDepartmentAndTargetYear(dept, TargetYear.ALL_YEARS).stream())
+                        .filter(room -> room.getDepartment() != null && room.getDepartment().getId() == 0)
+                        .map(KakaoRoomInfoResponse::new)
+                        .toList();
+            }
             return UnreadNoticeWithRoomResponse.builder()
-                .notice(noticeDto)
-                .kakaoRooms(rooms)
-                .build();
+                    .notice(noticeDto)
+                    .kakaoRooms(rooms)
+                    .build();
         }).toList();
     }
 
