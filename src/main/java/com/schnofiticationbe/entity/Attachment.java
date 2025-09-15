@@ -31,8 +31,4 @@ public class Attachment {
         this.fileUrl = fileUrl;
     }
 
-    public void setNotice(Notice notice) {
-        this.setNotice(notice);
-    }
-
 }
