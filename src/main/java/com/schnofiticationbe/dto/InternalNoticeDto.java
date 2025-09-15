@@ -53,10 +53,12 @@ public class InternalNoticeDto {
 
     @Getter
     public static class InternalNoticeAttachmentResponse {
+        private Long id;
         private String fileName;
         private String fileUrl;
 
         public InternalNoticeAttachmentResponse(Attachment attachment) {
+            this.id = attachment.getId();
             this.fileName = attachment.getFileName();
             this.fileUrl = attachment.getFileUrl();
         }
