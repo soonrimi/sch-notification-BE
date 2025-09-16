@@ -14,9 +14,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "attachments"})
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS )
 @DiscriminatorValue("NOTICE")
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "attachments", "category"})
 public abstract class Notice{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

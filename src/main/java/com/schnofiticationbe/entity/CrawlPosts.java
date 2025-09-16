@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @Entity
 @DiscriminatorValue("CrawlPosts")
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "writer", "externalSourceUrl", "source"})
 public class CrawlPosts extends Notice {
     @Column(nullable = false)
     private String writer; // 크롤링된 공지의 작성자 (String)

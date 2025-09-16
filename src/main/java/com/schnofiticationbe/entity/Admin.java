@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +8,8 @@ import lombok.Setter;
 @Getter
 @Entity
 @Table(name = "admin")
+@Schema(requiredProperties = {"id", "userId", "passwordHash", "name", "role", "affiliation"})
+
 public class Admin {
     public enum Role {
         SUPER_ADMIN,

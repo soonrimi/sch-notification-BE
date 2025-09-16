@@ -13,7 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @DiscriminatorValue("BOARD")
-@Schema(name = "Board", description = "건의사항 엔티티")
+@Schema(name = "Board", description = "건의사항 엔티티", requiredProperties = {"id", "title", "content", "createdAt"})
+
 public class Board{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
