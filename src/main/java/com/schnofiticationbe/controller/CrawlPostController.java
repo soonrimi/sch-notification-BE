@@ -52,5 +52,6 @@ public class CrawlPostController {
             postsPage = noticeService.getAllNotices(pageable);
         }
         return ResponseEntity.ok(postsPage);
+
     }
 }
