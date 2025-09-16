@@ -1,9 +1,6 @@
 package com.schnofiticationbe.dto;
 
-import com.schnofiticationbe.entity.Admin;
-import com.schnofiticationbe.entity.Attachment;
-import com.schnofiticationbe.entity.Category;
-import com.schnofiticationbe.entity.Notice;
+import com.schnofiticationbe.entity.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,19 +42,21 @@ public class CrawlPostDto {
         private Long id;
         private String title;
         private String content;
+        private String writer;
         private Timestamp createdAt;
         private Category category;
         private int viewCount;
         private List<AttachmentResponse> attachments;
 
-        public CrawlPostsResponse(Notice notice) {
-            this.id = notice.getId();
-            this.title = notice.getTitle();
-            this.content = notice.getContent();
-            this.category = notice.getCategory();
-            this.createdAt = notice.getCreatedAt();
-            this.viewCount = notice.getViewCount();
-            this.attachments = notice.getAttachments().stream()
+        public CrawlPostsResponse(CrawlPosts crawlPosts) {
+            this.id = crawlPosts.getId();
+            this.title = crawlPosts.getTitle();
+            this.content = crawlPosts.getContent();
+            this.category = crawlPosts.getCategory();
+            this.writer = crawlPosts.getWriter();
+            this.createdAt = crawlPosts.getCreatedAt();
+            this.viewCount = crawlPosts.getViewCount();
+            this.attachments = crawlPosts.getAttachments().stream()
                 .map(attachment -> new AttachmentResponse(attachment))
                 .collect(Collectors.toList());
         }
