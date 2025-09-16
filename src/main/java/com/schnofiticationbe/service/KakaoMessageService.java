@@ -41,7 +41,6 @@ public class KakaoMessageService {
             } else {
                 rooms = departmentRepository.findAll().stream()
                         .flatMap(dept -> kakaoRoomInfoRepository.findByDepartmentAndTargetYear(dept, TargetYear.ALL_YEARS).stream())
-                        .filter(room -> room.getDepartment() != null && room.getDepartment().getId() == 0)
                         .map(KakaoRoomInfoResponse::new)
                         .toList();
             }
