@@ -6,7 +6,6 @@ import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Board;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.repository.BoardRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
