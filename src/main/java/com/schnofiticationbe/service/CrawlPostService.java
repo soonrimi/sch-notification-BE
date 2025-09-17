@@ -2,10 +2,8 @@ package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.entity.Category;
-import com.schnofiticationbe.entity.CrawlPage;
 import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
-import com.schnofiticationbe.repository.CrawlPageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CrawlPostService {
     private final CrawlPostsRepository crawlPostsRepository;
-    private final CrawlPageRepository crawlPageRepository;
 
     // 전체 공지 조회
     public Page<CrawlPostDto.CrawlPostsResponse> getAllNotices(Pageable pageable) {
@@ -46,13 +43,6 @@ public class CrawlPostService {
         return crawlPostsRepository.findByTitleContainingOrContentContaining(keyword, keyword);
     }
 
-    public List<String> getAllDepartments() {
-        return crawlPageRepository.findAll()
-                .stream()
-                .map(CrawlPage::getTitle)
-                .distinct()
-                .toList();
-    }
     //카테고리별 공지사항 조회
     public Page<CrawlPostDto.CrawlPostsResponse> getNoticesByCategory(Category category, Pageable pageable) {
         // 1. Repository로부터 Page<CrawlPosts>를 받음
