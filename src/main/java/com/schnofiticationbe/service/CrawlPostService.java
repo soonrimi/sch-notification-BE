@@ -7,6 +7,9 @@ import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
 import com.schnofiticationbe.repository.CrawlPageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,11 +25,10 @@ public class CrawlPostService {
     private final CrawlPageRepository crawlPageRepository;
 
     // 전체 공지 조회
-    public List<CrawlPostDto.CrawlPostsResponse> getAllNotices() {
-        return crawlPostsRepository.findAll()
-                .stream()
-                .map(CrawlPostDto.CrawlPostsResponse::new)
-                .toList();
+    public Page<CrawlPostDto.CrawlPostsResponse> getAllNotices(Pageable pageable) {
+        Page<CrawlPosts> posts= crawlPostsRepository.findAll(pageable);
+        return posts.map(CrawlPostDto.CrawlPostsResponse::new);
+
     }
 
     // 단일 공지 조회
@@ -51,11 +53,12 @@ public class CrawlPostService {
                 .distinct()
                 .toList();
     }
-//카테고리별 공지사항 조회
-    public List<CrawlPostDto.CrawlPostsResponse> getAllNoticesByCategory(Category category) {
-        return crawlPostsRepository.findByCategory(category)
-                .stream()
-                .map(CrawlPostDto.CrawlPostsResponse::new)
-                .toList();
+    //카테고리별 공지사항 조회
+    public Page<CrawlPostDto.CrawlPostsResponse> getNoticesByCategory(Category category, Pageable pageable) {
+        // 1. Repository로부터 Page<CrawlPosts>를 받음
+        Page<CrawlPosts> postsPage = crawlPostsRepository.findByCategory(category, pageable);
+        // 2. Page의 map을 사용해 Page<CrawlPostDto.CrawlPostsResponse>로 변환하여 반환
+        return postsPage.map(CrawlPostDto.CrawlPostsResponse::new);
     }
+
 }
