@@ -6,6 +6,9 @@ import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.Notice;
 import com.schnofiticationbe.service.CrawlPostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +20,10 @@ import java.util.List;
 public class CrawlPostController {
     private final CrawlPostService noticeService;
 
+
     @GetMapping
-    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+    public ResponseEntity<Page<CrawlPostDto.CrawlPostsResponse>> getAllNotices(Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getAllNotices(pageable));
     }
 
     @GetMapping("/{id}")
@@ -33,9 +37,21 @@ public class CrawlPostController {
         return ResponseEntity.ok(noticeService.searchNotices(keyword));
     }
 
-    //카테고리별 공지사항 조회
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<CrawlPostDto.CrawlPostsResponse>> getNoticesByCategoryId(@PathVariable Category categoryId) {
-        return ResponseEntity.ok(noticeService.getAllNoticesByCategory(categoryId));
+    //카테고리별 공지사항 조회 (및 전체 조회)
+    @GetMapping("/category")
+    public ResponseEntity<Page<CrawlPostDto.CrawlPostsResponse>> getNotices(
+            @RequestParam(required = false) Category category,
+            Pageable pageable){
+
+        // 3. Page 객체를 미리 선언
+        Page<CrawlPostDto.CrawlPostsResponse> postsPage;
+
+        if (category != null) {
+            postsPage = noticeService.getNoticesByCategory(category, pageable);
+        } else {
+            postsPage = noticeService.getAllNotices(pageable);
+        }
+        return ResponseEntity.ok(postsPage);
+
     }
 }
