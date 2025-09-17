@@ -91,8 +91,9 @@ public class AdminService {
         admin.setUserId(req.getUserId());
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         admin.setName(req.getName());
-        admin.setRole(Admin.Role.ADMIN);
         admin.setAffiliation(req.getAffiliation());
+        List<Department> departments =  departmentRepository.findAllById(req.getDepartmentIds());
+        admin.setDepartments(new HashSet<>(departments));
 
         Admin saved = adminRepository.save(admin);
 
@@ -109,30 +110,26 @@ public class AdminService {
         }
 
         // JWT 토큰 생성 (JwtProvider 사용)
-        String token = jwtProvider.createToken(admin.getUserId(), admin.getRole());
+        String token = jwtProvider.createToken(admin.getUserId(), admin.getAffiliation());
 
         return new AdminDto.LoginResponse(
             admin.getUserId(),
             admin.getName(),
-            admin.getRole(),
             "로그인 성공",
             token
         );
     }
 
-    public AdminDto.ResetPasswordResponse resetPassword(AdminDto.ResetPasswordRequest req) {
+    public AdminDto.MessageResponse resetPassword(AdminDto.ResetPasswordRequest req) {
         Admin admin = adminRepository.findByUserId(req.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 아이디가 존재하지 않습니다."));
 
-        // 임시 비밀번호 생성 (8자리 랜덤)
-        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
-
         // 암호화 저장
-        admin.setPasswordHash(passwordEncoder.encode(tempPassword));
+        admin.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
         adminRepository.save(admin);
 
         // 임시 비밀번호 반환
-        return new AdminDto.ResetPasswordResponse(admin.getUserId(), tempPassword);
+        return new AdminDto.MessageResponse("비밀번호가 수정 되었습니다.");
     }
 
 //    public void updatePassword(String userId, String rawPassword) {
@@ -154,13 +151,6 @@ public class AdminService {
         adminRepository.save(admin);
     }
 
-    public Admin findById(Long id) {
-        return adminRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."
-                ));
-    }
-
     public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(String jwtToken) {
         String userId = jwtProvider.getUserId(jwtToken);
         Admin getCurrentAdmin = adminRepository.findByUserId(userId)
@@ -174,14 +164,14 @@ public class AdminService {
         return departmentRepository.findAll().stream().toList();
     }
 
-    public List<AdminDto.MyInfoResponse> getAllAdmins() {
+    public List<AdminDto.AdminUserResponse> getAllAdmins() {
         return adminRepository.findAll()
                 .stream()
-                .map(AdminDto.MyInfoResponse::new)
+                .map(AdminDto.AdminUserResponse::new)
                 .toList();
     }
 
-    public AdminDto.MyInfoResponse updateAdmin(Long adminId, AdminDto.AdminUpdateRequest req) {
+    public AdminDto.AdminUserResponse updateAdmin(Long adminId, AdminDto.AdminUpdateRequest req) {
         if (!adminRegisterPassword.equals(req.getRegisterPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "보안 비밀번호가 일치하지 않습니다.");
         }
@@ -192,15 +182,47 @@ public class AdminService {
         if (req.getName() != null && !req.getName().isBlank()) {
             admin.setName(req.getName());
         }
-        if (req.getAffiliation() != null && !req.getAffiliation().isBlank()) {
+        if (req.getAffiliation() != null) {
             admin.setAffiliation(req.getAffiliation());
         }
         if (req.getPassword() != null && !req.getPassword().isBlank()) {
             admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         }
+        // departmentIds 처리 (null이 아닌 경우 무조건 set, 빈 배열이면 기존 값 삭제)
+        if (req.getDepartmentIds() != null) {
+            List<Department> foundDepartments = departmentRepository.findAllById(req.getDepartmentIds());
+            if (foundDepartments.size() != req.getDepartmentIds().size()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 학과 ID가 포함되어 있습니다.");
+            }
+            admin.setDepartments(new HashSet<>(foundDepartments));
+        }
+        // categories 처리 (null이 아닌 경우 무조건 set)
+        if (req.getCategories() != null) {
+            Set<com.schnofiticationbe.entity.Category> categories = new HashSet<>();
+            for (String cat : req.getCategories()) {
+                try {
+                    categories.add(com.schnofiticationbe.entity.Category.valueOf(cat));
+                } catch (IllegalArgumentException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 카테고리: " + cat);
+                }
+            }
+            admin.setCategories(categories);
+        }
+        // grades 처리 (null이 아닌 경우 무조건 set)
+        if (req.getGrades() != null) {
+            Set<com.schnofiticationbe.entity.TargetYear> grades = new HashSet<>();
+            for (String grade : req.getGrades()) {
+                try {
+                    grades.add(com.schnofiticationbe.entity.TargetYear.valueOf(grade));
+                } catch (IllegalArgumentException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 학년: " + grade);
+                }
+            }
+            admin.setGrades(grades);
+        }
 
         Admin saved = adminRepository.save(admin);
-        return new AdminDto.MyInfoResponse(saved);
+        return new AdminDto.AdminUserResponse(saved);
     }
 
     public AdminDto.MessageResponse deleteAdmin(Long adminId, AdminDto.AdminDeleteRequest req) {
