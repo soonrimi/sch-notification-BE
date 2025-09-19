@@ -10,12 +10,12 @@ import com.schnofiticationbe.entity.Attachment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AttachmentDto {
+public class InternalAttachmentDto {
     private String fileName;
     private String fileUrl;
 
     // 엔티티를 DTO로 변환하는 생성자 (조회용)
-    public AttachmentDto(Attachment attachment) {
+    public InternalAttachmentDto(Attachment attachment) {
         this.fileName = attachment.getFileName();
         this.fileUrl = attachment.getFileUrl();
     }

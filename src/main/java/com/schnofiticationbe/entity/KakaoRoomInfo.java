@@ -1,6 +1,7 @@
 package com.schnofiticationbe.entity;
 
 import com.schnofiticationbe.dto.KakaoRoomInfoDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(requiredProperties = {"id", "department", "targetYear", "roomName"})
 public class KakaoRoomInfo {
 
     @Id

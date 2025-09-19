@@ -4,6 +4,9 @@ import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.CrawlPosts;
 import com.schnofiticationbe.entity.Notice;
+import com.schnofiticationbe.repository.CrawlPageRepository;
+import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,16 +25,11 @@ public class CrawlPostService {
     private final CrawlPostsRepository crawlPostsRepository;
 
     // 전체 공지 조회
-    public Page<CrawlPostDto.CrawlPostsResponse> getAllNotices(Pageable pageable) {
+    public Page<CrawlPostDto.CrawlPostsResponse> getAllCrawlNotices(Pageable pageable) {
         Page<CrawlPosts> posts= crawlPostsRepository.findAll(pageable);
         return posts.map(CrawlPostDto.CrawlPostsResponse::new);
 
     }
-
-    // 단일 공지 조회
-    public CrawlPostDto.CrawlPostsResponse getNotice(Long id) {
-        CrawlPosts crawlPost = crawlPostsRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
 
         crawlPost.setViewCount(crawlPost.getViewCount() + 1); // 조회수 증가
         CrawlPosts saved = crawlPostsRepository.save(crawlPost);
