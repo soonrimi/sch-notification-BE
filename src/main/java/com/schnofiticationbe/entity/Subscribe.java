@@ -22,6 +22,7 @@ public class Subscribe {
     @Column
     private String category;
 
+
     @Column(nullable = false)
     private String device;
 
