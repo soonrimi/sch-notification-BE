@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -14,12 +15,13 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS )
-@DiscriminatorValue("NOTICE")
-@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "attachments", "category"})
+@Inheritance(strategy = InheritanceType.JOINED )
+@DiscriminatorColumn(name = "notice_type", discriminatorType = DiscriminatorType.STRING)
+@Table(name = "notice")
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "category", "noticeType"})
 public abstract class Notice{
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -28,15 +30,14 @@ public abstract class Notice{
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
 
     private int viewCount; // 조회수
 
-    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
-
-    @Column()
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
     private Category category;
 
 }

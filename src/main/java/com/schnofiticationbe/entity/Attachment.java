@@ -10,23 +10,22 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Schema(requiredProperties = {"id", "fileName", "fileUrl", "name"})
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "attachment_type")
+@Schema(requiredProperties = {"id", "fileName", "fileUrl"})
 
-public class Attachment {
+public abstract class Attachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "file_name")
     private String fileName; // 첨부파일 이름
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "file_url")
     private String fileUrl;  // 첨부파일 URL
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notice_id" )
-    private Notice notice;
 
     public Attachment(String fileName, String fileUrl) {
         this.fileName = fileName;
