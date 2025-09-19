@@ -31,7 +31,7 @@ public class AdminController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<AdminDto.ResetPasswordResponse> resetPassword(
+    public ResponseEntity<AdminDto.MessageResponse> resetPassword(
             @RequestBody AdminDto.ResetPasswordRequest req) {
         return ResponseEntity.ok(adminService.resetPassword(req));
     }
@@ -66,12 +66,12 @@ public class AdminController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<AdminDto.MyInfoResponse>> getAllAdmins() {
+    public ResponseEntity<List<AdminDto.AdminUserResponse>> getAllAdmins() {
         return ResponseEntity.ok(adminService.getAllAdmins());
     }
 
     @PutMapping("/{adminId}")
-    public ResponseEntity<AdminDto.MyInfoResponse> updateAdmin(
+    public ResponseEntity<AdminDto.AdminUserResponse> updateAdmin(
             @PathVariable Long adminId,
             @RequestBody AdminDto.AdminUpdateRequest req
     ) {
