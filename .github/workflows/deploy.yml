@@ -48,7 +48,7 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
+            
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
             EOF
 
