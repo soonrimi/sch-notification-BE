@@ -50,6 +50,7 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
+            APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}
             EOF
 
       - name: Deploy on server
