@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @DiscriminatorValue("CRAWL")
-@Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "writer", "category","externalSourceUrl", "source", "CrawlAttachments"})
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "view_count", "writer", "category","externalSourceUrl", "source", "CrawlAttachments"})
 public class CrawlPosts extends Notice {
     @Column(nullable = true)
     private String writer; // 크롤링된 공지의 작성자 (String)
