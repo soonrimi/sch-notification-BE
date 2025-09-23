@@ -31,6 +31,11 @@ public class CrawlPostService {
 
     }
 
+    // 단일 공지 조회
+    public CrawlPostDto.CrawlPostsResponse getNotice(Long id) {
+        CrawlPosts crawlPost = crawlPostsRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
+
         crawlPost.setViewCount(crawlPost.getViewCount() + 1); // 조회수 증가
         CrawlPosts saved = crawlPostsRepository.save(crawlPost);
         return new CrawlPostDto.CrawlPostsResponse(saved);
