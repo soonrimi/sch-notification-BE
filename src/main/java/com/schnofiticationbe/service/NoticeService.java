@@ -66,4 +66,9 @@ public class NoticeService {
         Page<Notice> postsPage = noticeRepository.findAll(pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
+
+    public Page<NoticeDto.ListResponse> getNoticesByIds(List<Long> ids, Pageable pageable) {
+        Page<Notice> postsPage = noticeRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
+        return postsPage.map(NoticeDto.ListResponse::new);
+    }
 }
