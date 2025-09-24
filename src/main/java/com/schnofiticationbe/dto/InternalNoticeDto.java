@@ -20,7 +20,7 @@ public class InternalNoticeDto {
     private String title;
     private String content;
     private Timestamp createdAt;
-    private int viewCount;
+    private Integer viewCount;
     private Admin writer;
     private String targetYear;
     private String targetDept;
@@ -80,7 +80,7 @@ public class InternalNoticeDto {
         private String content;
         private Admin writer;
         private Timestamp createdAt;
-        private int viewCount;
+        private Integer viewCount;
         private String writerName;
         private Category category;
         private TargetYear targetYear;

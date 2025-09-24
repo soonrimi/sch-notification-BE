@@ -48,7 +48,7 @@ public class CrawlPostDto {
         private String writer;
         private Timestamp createdAt;
         private Category category;
-        private int viewCount;
+        private Integer viewCount;
         private NoticeType noticeType;
         private List<AttachmentResponse> attachments;
 

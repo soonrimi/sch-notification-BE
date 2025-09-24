@@ -56,9 +56,7 @@ public class NoticeService {
     }
     //카테고리별 공지사항 조회
     public Page<NoticeDto.ListResponse> getNoticesByCategory(Category category, Pageable pageable) {
-        // 1. Repository로부터 Page<CrawlPosts>를 받음
         Page<Notice> postsPage = noticeRepository.findByCategory(category, pageable);
-        // 2. Page의 map을 사용해 Page<CrawlPostDto.CrawlPostsResponse>로 변환하여 반환
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 
@@ -66,4 +64,9 @@ public class NoticeService {
         Page<Notice> postsPage = noticeRepository.findAll(pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
-}
+
+
+    public Page<NoticeDto.ListResponse> getNoticesByIds(List<Long> ids, Pageable pageable) {
+        Page<Notice> postsPage = noticeRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
+        return postsPage.map(NoticeDto.ListResponse::new);
+    }}
