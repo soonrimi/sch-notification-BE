@@ -20,7 +20,7 @@ public class InternalNoticeDto {
     private String title;
     private String content;
     private Timestamp createdAt;
-    private int viewCount;
+    private Integer viewCount;
     private Admin writer;
     private String targetYear;
     private String targetDept;
@@ -38,7 +38,7 @@ public class InternalNoticeDto {
     public static class CreateInternalNoticeRequest {
         private String title;
         private String content;
-        private String writer;
+        private Admin writer;
         private Category category;
         private TargetYear targetYear;
         private Set<Long> targetDepartmentIds;
@@ -49,7 +49,7 @@ public class InternalNoticeDto {
     public static class UpdateInternalNoticeRequest {
         private String title;
         private String content;
-        private String writer;
+        private Admin writer;
         private String externalSourceUrl;
     }
 
@@ -78,9 +78,9 @@ public class InternalNoticeDto {
         private long id;
         private String title;
         private String content;
-        private String writer;
+        private Admin writer;
         private Timestamp createdAt;
-        private int viewCount;
+        private Integer viewCount;
         private String writerName;
         private Category category;
         private TargetYear targetYear;
@@ -92,7 +92,7 @@ public class InternalNoticeDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.writer = notice.getWriter().getName();
+            this.writer = notice.getWriter();
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.writerName = notice.getWriter().getName();

@@ -34,7 +34,7 @@ public abstract class Notice{
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
     private Timestamp createdAt;
 
-    private int viewCount; // 조회수
+    private Integer viewCount; // 조회수
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)

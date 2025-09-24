@@ -1,16 +1,11 @@
 package com.schnofiticationbe.controller;
 
-import com.schnofiticationbe.dto.CrawlPostDto;
-
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.Category;
-import com.schnofiticationbe.entity.Notice;
-import com.schnofiticationbe.service.CrawlPostService;
 import com.schnofiticationbe.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,8 +39,6 @@ public class CrawlPostController {
     public ResponseEntity<Page<NoticeDto.ListResponse>> getNotices(
             @RequestParam(required = false) Category category,
             Pageable pageable){
-
-        // 3. Page 객체를 미리 선언
         Page<NoticeDto.ListResponse> postsPage;
 
         if (category != null) {
@@ -56,4 +49,13 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
 
     }
+
+    @GetMapping("/bookmark")
+    public  ResponseEntity<Page<NoticeDto.ListResponse>> getNoticesByIds(
+            @RequestBody(required = false) List<Long> ids,
+            Pageable pageable) {
+        Page<NoticeDto.ListResponse> postsPage = noticeService.getNoticesByIds(ids, pageable);
+        return ResponseEntity.ok(postsPage);
+    }
+
 }
