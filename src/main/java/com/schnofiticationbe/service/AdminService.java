@@ -12,6 +12,8 @@ import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.repository.AdminRepository;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.Utils.StoreAttachment;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,10 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
@@ -36,6 +36,63 @@ public class AdminService {
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
+    private final EmailService emailService;
+
+    private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
+
+    @Data
+    @AllArgsConstructor
+    static class OtpData {
+        private int code;
+        private long expireAtMillis;
+    }
+
+
+    public String loginWithEmailOtp(AdminDto.EmailLoginRequest req) {
+        Admin admin = adminRepository.findByUserId(req.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
+
+        if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
+        }
+
+        // 6자리 OTP 생성
+        int otp = (int) (Math.random() * 900000) + 100000;
+        long expire = System.currentTimeMillis() + 5 * 60 * 1000; // 5분 유효
+
+        otpStore.put(admin.getUserId(), new OtpData(otp, expire));
+
+        // userId가 이메일이라고 가정 (아니면 Admin에 email 필드 사용)
+        emailService.sendOtp(admin.getUserId(), otp);
+
+        return "이메일로 OTP를 발송했습니다. 5분 내 입력해주세요.";
+    }
+
+    /** 2단계: 이메일 OTP 검증 → 최종 JWT 발급 */
+    public AdminDto.LoginResponse verifyEmailOtp(AdminDto.OtpVerifyRequest req) {
+        OtpData data = otpStore.get(req.getUserId());
+        if (data == null || System.currentTimeMillis() > data.getExpireAtMillis()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP가 만료되었거나 존재하지 않습니다.");
+        }
+        if (data.getCode() != req.getOtp()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 코드가 올바르지 않습니다.");
+        }
+
+        // 일회성 사용 후 폐기
+        otpStore.remove(req.getUserId());
+
+        Admin admin = adminRepository.findByUserId(req.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "관리자 없음"));
+
+        String token = jwtProvider.createToken(admin.getUserId(), admin.getAffiliation());
+        return new AdminDto.LoginResponse(
+                admin.getUserId(),
+                admin.getName(),
+                "로그인 성공",
+                token
+        );
+    }
+
 
     // 공지 생성 (InternalNotice)
     public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {

@@ -86,4 +86,15 @@ public class AdminController {
         return ResponseEntity.ok(adminService.deleteAdmin(adminId, req));
     }
 
+    // 새 로그인 api (기존 /login 사용X)
+    @PostMapping("/login-email")
+    public ResponseEntity<String> loginEmail(@RequestBody AdminDto.EmailLoginRequest req) {
+        return ResponseEntity.ok(adminService.loginWithEmailOtp(req));
+    }
+
+    @PostMapping("/otp")
+    public ResponseEntity<AdminDto.LoginResponse> verifyOtp(@RequestBody AdminDto.OtpVerifyRequest req) {
+        return ResponseEntity.ok(adminService.verifyEmailOtp(req));
+    }
+
 }
