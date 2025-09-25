@@ -24,7 +24,16 @@ public class Admin {
 
     @Setter
     @Column(nullable = false, unique = true, length = 50)
-    private String userId;   // 아이디
+    private String userId;   // 이메일
+
+    @Getter
+    @Setter
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false; // 이메일 인증 여부
+
+    @Getter
+    @Setter
+    private String emailVerificationToken;
 
     @Setter
     @Column(nullable = false)

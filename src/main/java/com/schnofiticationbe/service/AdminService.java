@@ -12,11 +12,16 @@ import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.repository.AdminRepository;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.Utils.StoreAttachment;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,8 +42,15 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
     private final EmailService emailService;
-
+    private final JavaMailSender mailSender;
+    private final Map<String, String> emailVerificationTokens = new ConcurrentHashMap<>();
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
+
+    @Value("${ADMIN_REGISTER_PASSWORD}")
+    private String adminRegisterPassword;
+
+    @Value("${spring.mail.username}")
+    private String mailUsername;
 
     @Data
     @AllArgsConstructor
@@ -46,7 +58,6 @@ public class AdminService {
         private int code;
         private long expireAtMillis;
     }
-
 
     public String loginWithEmailOtp(AdminDto.EmailLoginRequest req) {
         Admin admin = adminRepository.findByUserId(req.getUserId())
@@ -56,19 +67,16 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
         }
 
-        // 6자리 OTP 생성
         int otp = (int) (Math.random() * 900000) + 100000;
-        long expire = System.currentTimeMillis() + 5 * 60 * 1000; // 5분 유효
+        long expire = System.currentTimeMillis() + 5 * 60 * 1000; // 5분 유효 설정
 
         otpStore.put(admin.getUserId(), new OtpData(otp, expire));
 
-        // userId가 이메일이라고 가정 (아니면 Admin에 email 필드 사용)
         emailService.sendOtp(admin.getUserId(), otp);
 
         return "이메일로 OTP를 발송했습니다. 5분 내 입력해주세요.";
     }
 
-    /** 2단계: 이메일 OTP 검증 → 최종 JWT 발급 */
     public AdminDto.LoginResponse verifyEmailOtp(AdminDto.OtpVerifyRequest req) {
         OtpData data = otpStore.get(req.getUserId());
         if (data == null || System.currentTimeMillis() > data.getExpireAtMillis()) {
@@ -78,7 +86,6 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 코드가 올바르지 않습니다.");
         }
 
-        // 일회성 사용 후 폐기
         otpStore.remove(req.getUserId());
 
         Admin admin = adminRepository.findByUserId(req.getUserId())
@@ -132,8 +139,34 @@ public class AdminService {
         return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
     }
 
-    @Value("${ADMIN_REGISTER_PASSWORD}")
-    private String adminRegisterPassword;
+    public void sendVerificationMail(String email) {
+        String token = UUID.randomUUID().toString();
+        emailService.saveToken(email, token);
+
+        String link = "http://notification.iubns.net/api/admin/verify?userId=" + email + "&token=" + token;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("[순천향대학교 Soonrimi] 이메일 인증");
+
+            helper.setFrom(mailUsername);
+
+            String htmlContent = "<p>이메일 인증을 완료하려면 아래 버튼을 눌러주세요:</p>"
+                    + "<a href=\"" + link + "\">이메일 인증</a>"
+                    + "<p> 다시 회원가입 폼으로 돌아가 나머지를 작성해주세요.</p>";
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+
+        } catch (MessagingException e) {
+            throw new RuntimeException("메일 발송 실패", e);
+        }
+    }
 
     public AdminDto.SignupResponse register(AdminDto.SignupRequest req) {
         if (adminRepository.existsByUserId(req.getUserId())) {
@@ -144,15 +177,24 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일치하지 않습니다.");
         }
 
+        if (!emailService.isVerified(req.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다.");
+        }
+
         Admin admin = new Admin();
         admin.setUserId(req.getUserId());
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         admin.setName(req.getName());
         admin.setAffiliation(req.getAffiliation());
-        List<Department> departments =  departmentRepository.findAllById(req.getDepartmentIds());
+        admin.setEmailVerified(true);
+        admin.setEmailVerificationToken(null);
+
+        List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
         admin.setDepartments(new HashSet<>(departments));
 
         Admin saved = adminRepository.save(admin);
+
+        emailService.removeToken(req.getUserId());
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
     }

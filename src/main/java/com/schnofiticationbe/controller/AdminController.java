@@ -6,7 +6,9 @@ import com.schnofiticationbe.dto.AdminDto;
 import com.schnofiticationbe.dto.InternalNoticeDto;
 import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.service.AdminService;
+import com.schnofiticationbe.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+    private final EmailService emailService;
 
     @PostMapping("/register")
     public ResponseEntity<AdminDto.SignupResponse> register(@RequestBody AdminDto.SignupRequest req) {
@@ -86,6 +89,26 @@ public class AdminController {
         return ResponseEntity.ok(adminService.deleteAdmin(adminId, req));
     }
 
+    @PostMapping("/send-verification")
+    public ResponseEntity<Void> sendVerification(@RequestParam String userId) {
+        adminService.sendVerificationMail(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(
+            @RequestParam("userId") String userId,
+            @RequestParam("token") String token) {
+
+        if (emailService.verifyToken(userId, token)) {
+            emailService.markVerified(userId);
+
+            return ResponseEntity.ok("이메일 인증 완료!");
+        } else {
+            return ResponseEntity.badRequest().body("잘못된 토큰이거나 만료됨");
+        }
+    }
+
     // 새 로그인 api (기존 /login 사용X)
     @PostMapping("/login-email")
     public ResponseEntity<String> loginEmail(@RequestBody AdminDto.EmailLoginRequest req) {
@@ -96,5 +119,4 @@ public class AdminController {
     public ResponseEntity<AdminDto.LoginResponse> verifyOtp(@RequestBody AdminDto.OtpVerifyRequest req) {
         return ResponseEntity.ok(adminService.verifyEmailOtp(req));
     }
-
 }
