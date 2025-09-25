@@ -16,6 +16,7 @@ public class CrawlPostDto {
         private String targetYear;
         private String targetDept;
         private Admin writer;
+        private NoticeType noticeType;
     }
 
     @Getter @Setter
@@ -28,12 +29,14 @@ public class CrawlPostDto {
 
     @Getter
     public static class AttachmentResponse {
+        private Long id;
         private String fileName;
         private String fileUrl;
 
-        public AttachmentResponse(Attachment attachment) {
-            this.fileName = attachment.getFileName();
-            this.fileUrl = attachment.getFileUrl();
+        public AttachmentResponse(CrawlAttachment crawlAttachment) {
+            this.id = crawlAttachment.getId();
+            this.fileName = crawlAttachment.getFileName();
+            this.fileUrl = crawlAttachment.getFileUrl();
         }
     }
 
@@ -45,7 +48,8 @@ public class CrawlPostDto {
         private String writer;
         private Timestamp createdAt;
         private Category category;
-        private int viewCount;
+        private Integer viewCount;
+        private NoticeType noticeType;
         private List<AttachmentResponse> attachments;
 
         public CrawlPostsResponse(CrawlPosts crawlPosts) {
@@ -56,8 +60,9 @@ public class CrawlPostDto {
             this.writer = crawlPosts.getWriter();
             this.createdAt = crawlPosts.getCreatedAt();
             this.viewCount = crawlPosts.getViewCount();
-            this.attachments = crawlPosts.getAttachments().stream()
-                .map(attachment -> new AttachmentResponse(attachment))
+            this.noticeType = NoticeType.CRAWL;
+            this.attachments = crawlPosts.getCrawlAttachments().stream()
+                .map(crawlAttachment -> new AttachmentResponse(crawlAttachment))
                 .collect(Collectors.toList());
         }
     }

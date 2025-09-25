@@ -20,11 +20,13 @@ public class InternalNoticeDto {
     private String title;
     private String content;
     private Timestamp createdAt;
-    private int viewCount;
+    private Integer viewCount;
     private Admin writer;
     private String targetYear;
     private String targetDept;
-    private List<Attachment> attachments;
+    private Boolean sentToKakao;
+    private NoticeType noticeType;
+    private List<InternalAttachment> attachments;
 
     // 생성 요청용 DTO
     @Getter
@@ -36,6 +38,7 @@ public class InternalNoticeDto {
     public static class CreateInternalNoticeRequest {
         private String title;
         private String content;
+        private Admin writer;
         private Category category;
         private TargetYear targetYear;
         private Set<Long> targetDepartmentIds;
@@ -46,7 +49,7 @@ public class InternalNoticeDto {
     public static class UpdateInternalNoticeRequest {
         private String title;
         private String content;
-        private String writer;
+        private Admin writer;
         private String externalSourceUrl;
     }
 
@@ -57,10 +60,10 @@ public class InternalNoticeDto {
         private String fileName;
         private String fileUrl;
 
-        public InternalNoticeAttachmentResponse(Attachment attachment) {
-            this.id = attachment.getId();
-            this.fileName = attachment.getFileName();
-            this.fileUrl = attachment.getFileUrl();
+        public InternalNoticeAttachmentResponse(InternalAttachment internalAttachment) {
+            this.id = internalAttachment.getId();
+            this.fileName = internalAttachment.getFileName();
+            this.fileUrl = internalAttachment.getFileUrl();
         }
     }
 
@@ -75,26 +78,30 @@ public class InternalNoticeDto {
         private long id;
         private String title;
         private String content;
+        private Admin writer;
         private Timestamp createdAt;
-        private int viewCount;
+        private Integer viewCount;
         private String writerName;
         private Category category;
         private TargetYear targetYear;
         private Set<Department> targetDept;
+        private NoticeType noticeType;
         private List<InternalNoticeAttachmentResponse> attachments;
 
-        public InternalNoticeListResponse(com.schnofiticationbe.entity.InternalNotice notice) {
+        public InternalNoticeListResponse(InternalNotice notice) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
+            this.writer = notice.getWriter();
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.writerName = notice.getWriter().getName();
             this.targetYear = notice.getTargetYear();
             this.targetDept = notice.getTargetDept();
             this.category = notice.getCategory();
-            this.attachments = notice.getAttachments().stream()
-                    .map(attachment -> new InternalNoticeAttachmentResponse(attachment))
+            this.noticeType = NoticeType.INTERNAL;
+            this.attachments = notice.getInternalAttachment().stream()
+                    .map(internalAttachment -> new InternalNoticeAttachmentResponse(internalAttachment))
                     .collect(Collectors.toList());
         }
     }

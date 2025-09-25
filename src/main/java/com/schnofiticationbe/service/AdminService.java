@@ -1,16 +1,10 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.AdminDto;
-import com.schnofiticationbe.entity.Department;
-import com.schnofiticationbe.repository.DepartmentRepository;
-import com.schnofiticationbe.repository.InternalNoticeRepository;
+import com.schnofiticationbe.entity.*;
+import com.schnofiticationbe.repository.*;
 import com.schnofiticationbe.security.jwt.JwtProvider;
 import com.schnofiticationbe.dto.InternalNoticeDto;
-import com.schnofiticationbe.entity.Admin;
-import com.schnofiticationbe.entity.InternalNotice;
-import com.schnofiticationbe.entity.Attachment;
-import com.schnofiticationbe.repository.AdminRepository;
-import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.Utils.StoreAttachment;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -37,7 +31,7 @@ public class AdminService {
     private final JwtProvider jwtProvider;
     private final AdminRepository adminRepository;
     private final InternalNoticeRepository internalNoticeRepository;
-    private final AttachmentRepository attachmentRepository;
+    private final InternalAttachmentRepository InternalAttachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
@@ -113,30 +107,43 @@ public class AdminService {
         notice.setTitle(req.getTitle());
         notice.setContent(req.getContent());
         notice.setWriter(admin);
-        notice.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         notice.setViewCount(0);
         notice.setTargetYear(req.getTargetYear());
         notice.setTargetDept(departments);
         notice.setSentToKakao(false);
         notice.setCategory(req.getCategory());
-        notice.setTargetDept(departments);
 
-        InternalNotice savedNotice = internalNoticeRepository.save(notice);
+        try {
+            // save를 시도합니다.
+            InternalNotice savedNotice = internalNoticeRepository.save(notice);
 
-        if (files != null && !files.isEmpty()) {
-            for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
-                    String fileUrl = storeAttachment.saveFile(file);
-                    Attachment attachment = new Attachment();
-                    attachment.setFileName(file.getOriginalFilename());
-                    attachment.setFileUrl(fileUrl);
-                    attachment.setNotice(savedNotice);
-                    savedNotice.getAttachments().add(attachment);
-                    attachmentRepository.save(attachment);
+            // (성공 시 파일 처리 로직)
+            if (files != null && !files.isEmpty()) {
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        String fileUrl = storeAttachment.saveFile(file);
+                        InternalAttachment attachment = new InternalAttachment();
+                        attachment.setFileName(file.getOriginalFilename());
+                        attachment.setFileUrl(fileUrl);
+                        attachment.setInternalNotice(savedNotice);
+                        // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
+                        InternalAttachmentRepository.save(attachment);
+                    }
                 }
             }
+            return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
+
+        } catch (Exception e) {
+            // !!!!! 오류 발생 시, 저장하려던 notice 객체의 상태를 강제로 출력합니다 !!!!!
+            System.out.println("==================== SAVE FAILED: DATA DUMP ====================");
+            System.out.println("Title: " + notice.getTitle());
+            System.out.println("Content: " + notice.getContent());
+            System.out.println("Category: " + notice.getCategory());
+            System.out.println("================================================================");
+
+            // 원래 발생한 예외를 다시 던져서 기존 흐름을 방해하지 않습니다.
+            throw e;
         }
-        return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
     }
 
     public void sendVerificationMail(String email) {
