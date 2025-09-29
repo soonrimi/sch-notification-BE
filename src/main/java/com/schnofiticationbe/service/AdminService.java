@@ -150,8 +150,8 @@ public class AdminService {
         String token = UUID.randomUUID().toString();
         emailService.saveToken(email, token);
 
-        String link = "http://notification.iubns.net/api/admin/verify?userId=" + email + "&token=" + token;
-
+//        String link = "http://notification.iubns.net/api/admin/verify?userId=" + email + "&token=" + token;
+        String link = "http://localhost:7100/api/admin/verify?userId=" + email + "&token=" + token;
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -161,9 +161,8 @@ public class AdminService {
 
             helper.setFrom(mailUsername);
 
-            String htmlContent = "<p>이메일 인증을 완료하려면 아래 버튼을 눌러주세요:</p>"
-                    + "<a href=\"" + link + "\">이메일 인증</a>"
-                    + "<p> 다시 회원가입 폼으로 돌아가 나머지를 작성해주세요.</p>";
+            String htmlContent = "<a href=\"" + link + "\">이메일 인증</a>"
+                    + "<p> 위 버튼을 누른 뒤 다시 회원가입 폼으로 돌아가 나머지를 작성해주세요.</p>";
 
             helper.setText(htmlContent, true);
 

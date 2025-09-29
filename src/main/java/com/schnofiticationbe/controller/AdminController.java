@@ -90,7 +90,8 @@ public class AdminController {
     }
 
     @PostMapping("/send-verification")
-    public ResponseEntity<Void> sendVerification(@RequestParam String userId) {
+    public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
+        String userId = body.get("userId");
         adminService.sendVerificationMail(userId);
         return ResponseEntity.ok().build();
     }
