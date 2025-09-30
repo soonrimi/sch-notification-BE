@@ -1,6 +1,7 @@
 package com.schnofiticationbe.controller;
 
 import com.schnofiticationbe.dto.NoticeDto;
+import com.schnofiticationbe.dto.SearchRequestDto;
 import com.schnofiticationbe.entity.Category;
 import com.schnofiticationbe.entity.Department;
 import com.schnofiticationbe.entity.TargetYear;
@@ -51,12 +52,14 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
 
     }
+    //북마크 공지사항 조회 (및 북마크 내 검색)
 
-    @GetMapping("/bookmark")
-    public  ResponseEntity<Page<NoticeDto.ListResponse>> getNoticesByIds(
-            @RequestBody(required = false) List<Long> ids,
-            @RequestParam (required = false, name = "keyword") String keyword,
+    @PostMapping("/bookmark/search")
+    public ResponseEntity<Page<NoticeDto.ListResponse>> searchNoticesByIds(
+            @RequestBody SearchRequestDto requestDto, // RequestBody로 받음
             Pageable pageable) {
+        List<Long> ids = requestDto.getIds();
+        String keyword = requestDto.getKeyword();
         Page<NoticeDto.ListResponse> postsPage;
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.ok(Page.empty(pageable));
@@ -68,6 +71,7 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
     }
 
+    //학과 및 학년별 공지사항 조회 (및 전체 조회)
     @GetMapping("/initialized")
     public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNotices(
             @RequestParam (required = false, name = "departmentId")Long departmentId,

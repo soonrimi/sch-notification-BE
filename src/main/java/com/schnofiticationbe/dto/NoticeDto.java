@@ -30,7 +30,6 @@ public class NoticeDto {
         private final String content;
         private final NoticeType noticeType;
         private final String categoryName;
-        private final String content;
 
         public ListResponse(Notice notice) {
             this.id = notice.getId();
