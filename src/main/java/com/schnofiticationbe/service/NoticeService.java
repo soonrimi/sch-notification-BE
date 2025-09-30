@@ -2,10 +2,7 @@ package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.dto.NoticeDto;
-import com.schnofiticationbe.entity.Category;
-import com.schnofiticationbe.entity.CrawlPage;
-import com.schnofiticationbe.entity.CrawlPosts;
-import com.schnofiticationbe.entity.Notice;
+import com.schnofiticationbe.entity.*;
 import com.schnofiticationbe.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -69,4 +66,19 @@ public class NoticeService {
     public Page<NoticeDto.ListResponse> getNoticesByIds(List<Long> ids, Pageable pageable) {
         Page<Notice> postsPage = noticeRepository.findByIdInOrderByCreatedAtDesc(ids, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
-    }}
+    }
+    public Page<NoticeDto.ListResponse> searchInBookmarkedNotices(List<Long> ids, String keyword, Pageable pageable){
+        Page<Notice> postsPage = noticeRepository.findByIdAndTitleContainingOrContentContainingOrderByCreatedAtDescCustom(ids, keyword, pageable);
+        return postsPage.map(NoticeDto.ListResponse::new);
+    }
+
+    public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(Long departmentId, Pageable pageable) {
+        Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentOrderByCreatedAt(departmentId, pageable);
+        return postsPage.map(NoticeDto.ListResponse::new);
+    }
+
+    public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(Long departmentId, TargetYear targetYear, Pageable pageable) {
+        Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentAndYearOrderByCreatedAt(departmentId, targetYear, pageable);
+        return postsPage.map(NoticeDto.ListResponse::new);
+    }
+}

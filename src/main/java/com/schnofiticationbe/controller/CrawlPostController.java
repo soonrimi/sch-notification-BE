@@ -2,7 +2,10 @@ package com.schnofiticationbe.controller;
 
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.Category;
+import com.schnofiticationbe.entity.Department;
+import com.schnofiticationbe.entity.TargetYear;
 import com.schnofiticationbe.service.NoticeService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/notice")
 @RequiredArgsConstructor
@@ -53,8 +55,31 @@ public class CrawlPostController {
     @GetMapping("/bookmark")
     public  ResponseEntity<Page<NoticeDto.ListResponse>> getNoticesByIds(
             @RequestBody(required = false) List<Long> ids,
+            @RequestParam (required = false, name = "keyword") String keyword,
+
             Pageable pageable) {
-        Page<NoticeDto.ListResponse> postsPage = noticeService.getNoticesByIds(ids, pageable);
+        Page<NoticeDto.ListResponse> postsPage;
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.ok(Page.empty(pageable));
+        }else if (keyword ==null || keyword.isEmpty()){
+            postsPage = noticeService.getNoticesByIds(ids, pageable);
+        }else {
+            postsPage = noticeService.searchInBookmarkedNotices(ids, keyword, pageable);
+        }
+        return ResponseEntity.ok(postsPage);
+    }
+
+    @GetMapping("/initialized")
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNotices(
+            @RequestParam (required = false, name = "departmentId")Long departmentId,
+            @RequestParam (required = false, name = "targetYear")TargetYear targetYear,
+            Pageable pageable) {
+        Page<NoticeDto.ListResponse> postsPage;
+        if (targetYear == null) {
+            postsPage=noticeService.getAllNoticeByDepartment(departmentId, pageable);
+        }else {
+            postsPage=noticeService.getNoticesByDepartmentAndTargetYear(departmentId, targetYear, pageable);
+        }
         return ResponseEntity.ok(postsPage);
     }
 
