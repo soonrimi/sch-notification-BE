@@ -88,8 +88,10 @@ public class LoggingInterceptor implements HandlerInterceptor {
             logToFile(finalLogLevel, res.getStatus(), duration, responseLog);
 
             // DB 저장
-            logBuilder.httpStatus(res.getStatus()).durationMs(duration);
-            logService.saveLog(logBuilder.build());
+            if (finalLogLevel == LogLevel.WARN || finalLogLevel == LogLevel.ERROR) {
+                logBuilder.httpStatus(res.getStatus()).durationMs(duration);
+                logService.saveLog(logBuilder.build());
+            }
 
         } finally {
             logContextHolder.clear();
