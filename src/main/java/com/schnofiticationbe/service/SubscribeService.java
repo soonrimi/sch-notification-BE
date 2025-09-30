@@ -1,6 +1,5 @@
 package com.schnofiticationbe.service;
 
-import com.schnofiticationbe.dto.SubscribeDto;
 import com.schnofiticationbe.entity.Subscribe;
 import com.schnofiticationbe.repository.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,22 +14,11 @@ public class SubscribeService {
 
     private final SubscribeRepository subscribeRepository;
 
-
-    public Subscribe createSubscribe(SubscribeDto.SubscribeCreateRequest req) {
-        if (req.getDevice() == null || req.getDevice().isBlank()) {
-            throw new IllegalArgumentException("device는 필수입니다.");
-        }
-
-        Subscribe s = new Subscribe();
-        s.setDevice(req.getDevice());
-        s.setCategory(req.getCategory());
-        s.setDepartment(req.getDepartment());
-        s.setYear(req.getYear());
-
-        if (req.getIncludeKeywords() != null) s.setIncludeKeywords(req.getIncludeKeywords());
-        if (req.getExcludeKeywords() != null) s.setExcludeKeywords(req.getExcludeKeywords());
-
-        return subscribeRepository.save(s);
+    public Subscribe createSubscribe(String category, String device) {
+        Subscribe subscribe = new Subscribe();
+        subscribe.setCategory(category);
+        subscribe.setDevice(device);
+        return subscribeRepository.save(subscribe);
     }
 
     public List<Subscribe> getAllSubscribes() {
@@ -42,47 +30,19 @@ public class SubscribeService {
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
     }
 
-
     @Transactional
-    public Subscribe updateSubscribe(int id, SubscribeDto.SubscribeUpdateRequest req) {
-        Subscribe s = subscribeRepository.findById(id)
+    public Subscribe updateSubscribe(int id, String newCategory, String newDevice) {
+        Subscribe subscribe = subscribeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
 
-        if (req.getDevice() != null && !req.getDevice().isBlank()) s.setDevice(req.getDevice());
-        if (req.getCategory() != null) s.setCategory(req.getCategory());
-        if (req.getDepartment() != null) s.setDepartment(req.getDepartment());
-        if (req.getYear() != null) s.setYear(req.getYear());
+        if (newCategory != null && !newCategory.isBlank()) {
+            subscribe.setCategory(newCategory);
+        }
+        if (newDevice != null && !newDevice.isBlank()) {
+            subscribe.setDevice(newDevice);
+        }
 
-
-        if (req.getIncludeKeywords() != null) s.setIncludeKeywords(req.getIncludeKeywords());
-        if (req.getExcludeKeywords() != null) s.setExcludeKeywords(req.getExcludeKeywords());
-
-        return s;
-    }
-
-
-    @Transactional
-    public Subscribe updateKeywords(int id, SubscribeDto.SubscribeUpdateKeywordsRequest req) {
-        Subscribe s = subscribeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
-
-        if (req.getIncludeKeywords() != null) s.setIncludeKeywords(req.getIncludeKeywords());
-        if (req.getExcludeKeywords() != null) s.setExcludeKeywords(req.getExcludeKeywords());
-
-        return s;
-    }
-
-
-    @Transactional
-    public Subscribe updateProfile(int id, SubscribeDto.SubscribeUpdateProfileRequest req) {
-        Subscribe s = subscribeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
-
-        if (req.getDepartment() != null) s.setDepartment(req.getDepartment());
-        if (req.getYear() != null) s.setYear(req.getYear());
-        if (req.getDevice() != null && !req.getDevice().isBlank()) s.setDevice(req.getDevice());
-
-        return s;
+        return subscribe;
     }
 
     public void deleteSubscribe(int id) {
@@ -90,5 +50,13 @@ public class SubscribeService {
             throw new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id);
         }
         subscribeRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Subscribe updateCategory(int id, String newCategory) {
+        Subscribe subscribe = subscribeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
+        subscribe.setCategory(newCategory);
+        return subscribe;
     }
 }
