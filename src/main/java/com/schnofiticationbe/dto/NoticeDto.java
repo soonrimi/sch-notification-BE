@@ -29,6 +29,7 @@ public class NoticeDto {
         private final String writer;
         private final NoticeType noticeType;
         private final String categoryName;
+        private final String content;
 
         public ListResponse(Notice notice) {
             this.id = notice.getId();
@@ -36,6 +37,7 @@ public class NoticeDto {
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
+            this.content = notice.getContent();
 
             if (notice instanceof InternalNotice internalNotice) {
                 this.writer = internalNotice.getWriter().getName();
