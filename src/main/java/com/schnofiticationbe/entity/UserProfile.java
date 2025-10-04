@@ -1,7 +1,8 @@
 package com.schnofiticationbe.entity;
-import io.swagger.v3.oas.annotations.media.Schema;
+
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -10,17 +11,21 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@Table(name = "user_profile")
+public class UserProfile {
 
-@Schema(requiredProperties = {"id", "category", "device", "createdDate"})
-public class Subscribe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; //아이디
+    private Integer id;
 
     @Column(nullable = false)
-    private String category;
+    private String department;
 
     @Column(nullable = false)
+    private Integer grade;
+
+    @Column(nullable = true)
     private String device;
 
     @CreationTimestamp
