@@ -1,84 +1,59 @@
 package com.schnofiticationbe.service;
 
-import com.schnofiticationbe.entity.Subscribe;
-import com.schnofiticationbe.repository.SubscribeRepository;
-import com.schnofiticationbe.Utils.KeywordMatcher;
+import com.schnofiticationbe.entity.KeywordNotification;
+import com.schnofiticationbe.entity.UserProfile;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-    private final Logger log = LoggerFactory.getLogger(NotificationService.class);
-    private final SubscribeRepository subscribeRepository;
 
+    private final KeywordService keywordService;
+    private final UserProfileService userProfileService;
 
-    public void notifySubscribers(String title, String body, String category, String targetDept, Integer targetYear) {
-        List<Subscribe> all = subscribeRepository.findAll();
+    /**
+     * 공지 내용(content)을 입력받아서, 키워드와 사용자 정보를 기준으로 알림 대상 필터링 예시
+     */
+    public void sendNotificationToEligibleUsers(String content, String targetDept, Integer targetGrade) {
+        List<UserProfile> allUsers = userProfileService.getAll();
+        List<KeywordNotification> allKeywords = keywordService.getAll();
 
-        String contentForMatch = ((title == null ? "" : title) + " " + (body == null ? "" : body)).trim();
+        for (UserProfile user : allUsers) {
+            // 학과 필터
+            if (targetDept != null && !user.getDepartment().equalsIgnoreCase(targetDept)) {
+                continue;
+            }
 
-        List<Subscribe> matched = all.stream()
-                .filter(s -> matchByCategory(s, category))
-                .filter(s -> matchByDepartmentAndYear(s, targetDept, targetYear))
-                .filter(s -> matchByKeywords(s, contentForMatch))
-                .collect(Collectors.toList());
+            // 학년 필터
+            if (targetGrade != null && !user.getGrade().equals(targetGrade)) {
+                continue;
+            }
 
-        log.info("알림 매칭된 구독수: {}", matched.size());
-        for (Subscribe s : matched) {
-
-            sendPushMock(s, title, body, category);
-        }
-    }
-
-    private boolean matchByCategory(Subscribe s, String noticeCategory) {
-
-        if (s.getCategory() == null || s.getCategory().isBlank()) return true;
-        if (noticeCategory == null) return false;
-        return s.getCategory().equalsIgnoreCase(noticeCategory);
-    }
-
-    private boolean matchByDepartmentAndYear(Subscribe s, String targetDept, Integer targetYear) {
-
-        if (s.getDepartment() != null && !s.getDepartment().isBlank()) {
-            if (targetDept == null || targetDept.isBlank()) {
-
-            } else {
-                if (!s.getDepartment().equalsIgnoreCase(targetDept)) return false;
+            // 사용자별 키워드 매칭
+            for (KeywordNotification keyword : allKeywords) {
+                if (isKeywordMatch(content, keyword)) {
+                    // 실제 FCM 발송 등 로직 작성 가능
+                    System.out.println("알림 전송 대상: " + user.getDepartment() + " " + user.getGrade() + "학년");
+                }
             }
         }
-
-        if (s.getYear() != null) {
-            if (targetYear == null) return false;
-            if (!s.getYear().equals(targetYear)) return false;
-        }
-        return true;
     }
 
-    private boolean matchByKeywords(Subscribe s, String content) {
-
-        if (!KeywordMatcher.containsNoneKeyword(content, s.getExcludeKeywords())) {
-            return false;
+    private boolean isKeywordMatch(String content, KeywordNotification k) {
+        // 제외 키워드 포함되어 있으면 false
+        for (String exclude : k.getExcludeKeywords()) {
+            if (content.contains(exclude)) return false;
         }
 
-
-        if (s.getIncludeKeywords() != null && !s.getIncludeKeywords().isEmpty()) {
-            return KeywordMatcher.containsAnyKeyword(content, s.getIncludeKeywords());
+        // 포함 키워드 중 하나라도 포함되어 있으면 true
+        if (k.getIncludeKeywords() == null || k.getIncludeKeywords().isEmpty()) return false;
+        for (String include : k.getIncludeKeywords()) {
+            if (content.contains(include)) return true;
         }
 
-
-        return true;
-    }
-
-    private void sendPushMock(Subscribe s, String title, String body, String category) {
-
-        log.info("[MOCK SEND] to device={} | title='{}' | category='{}' | subscriberId={}",
-                s.getDevice(), title, category, s.getId());
+        return false;
     }
 }
