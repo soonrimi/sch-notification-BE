@@ -73,6 +73,19 @@ public class AdminDto {
     }
 
     @Getter @Setter
+    public static class EmailLoginRequest {
+        private String userId;
+        private String password;
+    }
+
+    @Getter @Setter
+    public static class OtpVerifyRequest {   
+        private String userId;
+        private int otp;
+    }
+
+
+    @Getter @Setter
     @Schema(requiredProperties = {"userId", "registerPassword","tempPassword"})
     public static class ResetPasswordRequest {
         private String userId; // 아이디
