@@ -25,8 +25,9 @@ public class NoticeDto {
         private final Long id;
         private final String title;
         private final Timestamp createdAt;
-        private final int viewCount;
+        private final Integer viewCount;
         private final String writer;
+        private final String content;
         private final NoticeType noticeType;
         private final String categoryName;
 
@@ -36,6 +37,7 @@ public class NoticeDto {
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
+            this.content = notice.getContent();
 
             if (notice instanceof InternalNotice internalNotice) {
                 this.writer = internalNotice.getWriter().getName();
@@ -60,7 +62,7 @@ public class NoticeDto {
         private final String content;
         private final String writer;
         private final Timestamp createdAt;
-        private final int viewCount;
+        private final Integer viewCount;
         private final String categoryName;
         private final NoticeType noticeType;
         private final TargetYear targetYear; // InternalNotice 전용

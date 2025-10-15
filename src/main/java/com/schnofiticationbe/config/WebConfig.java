@@ -1,18 +1,21 @@
 package com.schnofiticationbe.config;
 
+//import com.schnofiticationbe.config.interceptor.LoggingInterceptor;
+import com.schnofiticationbe.config.interceptor.LoggingInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerTypePredicate;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.context.annotation.Bean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
+
+    private final LoggingInterceptor loggingInterceptor;
 
     @Bean
     public MultipartJackson2HttpMessageConverter multipartJackson2HttpMessageConverter(ObjectMapper objectMapper) {
@@ -38,4 +41,10 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.addPathPrefix("/api", HandlerTypePredicate.forAnnotation(RestController.class));
     }
 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry){
+        registry.addInterceptor(loggingInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/error");
+    }
 }
