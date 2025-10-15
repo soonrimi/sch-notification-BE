@@ -26,10 +26,12 @@ public class KeywordNotification {
     @Column(name = "include_keyword", nullable = false)
     private List<String> includeKeywords = new ArrayList<>();
 
+
     @ElementCollection
     @CollectionTable(name = "keyword_excludes", joinColumns = @JoinColumn(name = "keyword_notification_id"))
     @Column(name = "exclude_keyword", nullable = false)
     private List<String> excludeKeywords = new ArrayList<>();
+
 
     @Column(nullable = true)
     private String device;

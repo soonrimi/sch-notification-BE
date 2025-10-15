@@ -15,7 +15,7 @@ public class UserProfileDto {
     public static class CreateRequest {
         private String department;
         private Integer grade;
-        private String device; // 선택적
+        private String device;
     }
 
     @Data

@@ -16,7 +16,7 @@ public class KeywordDto {
     public static class CreateRequest {
         private List<String> includeKeywords;
         private List<String> excludeKeywords;
-        private String device; // optional
+        private String device;
     }
 
     @Data
@@ -25,7 +25,7 @@ public class KeywordDto {
     public static class UpdateRequest {
         private List<String> includeKeywords;
         private List<String> excludeKeywords;
-        private String device; // optional
+        private String device;
     }
 
     @Data
