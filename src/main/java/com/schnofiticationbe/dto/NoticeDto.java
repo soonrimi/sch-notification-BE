@@ -25,11 +25,11 @@ public class NoticeDto {
         private final Long id;
         private final String title;
         private final Timestamp createdAt;
-        private final int viewCount;
+        private final Integer viewCount;
         private final String writer;
+        private final String content;
         private final NoticeType noticeType;
         private final String categoryName;
-        private final String content;
 
         public ListResponse(Notice notice) {
             this.id = notice.getId();
@@ -62,7 +62,7 @@ public class NoticeDto {
         private final String content;
         private final String writer;
         private final Timestamp createdAt;
-        private final int viewCount;
+        private final Integer viewCount;
         private final String categoryName;
         private final NoticeType noticeType;
         private final TargetYear targetYear; // InternalNotice 전용
