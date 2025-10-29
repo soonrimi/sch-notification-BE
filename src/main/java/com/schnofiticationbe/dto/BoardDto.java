@@ -4,6 +4,7 @@ import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Board;
 import com.schnofiticationbe.entity.BoardAttachment;
 import com.schnofiticationbe.entity.NoticeType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,13 +14,14 @@ import java.util.stream.Collectors;
 
 public class BoardDto {
     @Getter @Setter
+    @Schema(requiredProperties = {"title", "content", "attachments", "noticeType"})
     public static class CreateRequest {
         private String title;
         private String content;
         private List<BoardAttachment> attachments;
         private NoticeType noticeType;
     }
-
+    @Schema(requiredProperties = {"title", "content"})
     @Getter @Setter
     public static class UpdateRequest {
         private String title;
@@ -27,6 +29,7 @@ public class BoardDto {
     }
 
     @Getter
+    @Schema(requiredProperties = {"fileName", "fileUrl"})
     public static class AttachmentResponse {
         private String fileName;
         private String fileUrl;
@@ -38,6 +41,7 @@ public class BoardDto {
     }
 
     @Getter
+    @Schema(requiredProperties = {"id", "title", "content", "createdAt", "attachments", "noticeType"})
     public static class Response {
         private Long id;
         private String title;
