@@ -1,7 +1,9 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Attachment;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(requiredProperties = {"fileName", "fileUrl"})
 public class CrawlAttachmentDto {
     private String fileName;
     private String fileUrl;

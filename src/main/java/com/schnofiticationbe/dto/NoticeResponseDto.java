@@ -1,6 +1,7 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.sql.Timestamp;
@@ -12,6 +13,7 @@ public class NoticeResponseDto {
 
     // 첨부파일 응답 DTO는 공통으로 사용 가능 (filename, fileUrl만 필요하므로)
     @Getter
+    @Schema(requiredProperties = {"fileName", "fileUrl"})
     public static class AttachmentResponse {
         private String fileName;
         private String fileUrl;
@@ -25,6 +27,9 @@ public class NoticeResponseDto {
 
     // 모든 게시물을 포괄하는 공통 응답 DTO
     @Getter
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType",
+            "externalSourceUrl", "source", "crawlAttachments",
+            "targetYear", "targetDeptNames", "internalAttachments"})
     public static class NoticeResponse {
         private Long id;
         private String title;

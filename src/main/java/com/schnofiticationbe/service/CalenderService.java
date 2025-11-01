@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CalenderService {
@@ -27,8 +29,10 @@ public class CalenderService {
                 .build();
     }
 
-    public Page<CalenderDto.Response> getAllCalenders(Pageable pageable) {
-        Page<Calender> calenderPage = calenderRepository.findAll(pageable);
-        return calenderPage.map(this::toEntity);
+    public List<CalenderDto.Response> getAllCalenders() {
+        List<Calender> calenderPage = calenderRepository.findAll();
+        return calenderPage.stream()
+                .map(this::toEntity)
+                .toList();
     }
 }

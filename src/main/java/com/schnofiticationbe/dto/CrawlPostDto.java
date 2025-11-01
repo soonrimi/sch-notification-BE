@@ -1,6 +1,7 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 
 public class CrawlPostDto {
     @Getter @Setter
+    @Schema(requiredProperties = {"title", "content", "targetYear", "targetDept", "writer", "noticeType"})
     public static class CreateRequest {
         private String title;
         private String content;
@@ -20,6 +22,7 @@ public class CrawlPostDto {
     }
 
     @Getter @Setter
+    @Schema(requiredProperties = {"title", "content", "targetYear", "targetDept"})
     public static class UpdateRequest {
         private String title;
         private String content;
@@ -28,6 +31,7 @@ public class CrawlPostDto {
     }
 
     @Getter
+    @Schema(requiredProperties = {"id", "fileName", "fileUrl"})
     public static class AttachmentResponse {
         private Long id;
         private String fileName;
@@ -41,6 +45,7 @@ public class CrawlPostDto {
     }
 
     @Getter
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments"})
     public static class CrawlPostsResponse {
         private Long id;
         private String title;

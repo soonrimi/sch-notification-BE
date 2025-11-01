@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/calenders")
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class CalenderController {
     @GetMapping
     @Operation(summary = "캘린더 전체 조회", description = "모든 캘린더 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "캘린더 조회 성공")
-    public ResponseEntity<Page<CalenderDto.Response>> getAllCalenders(Pageable pageable) {
-        return ResponseEntity.ok(CalenderService.getAllCalenders(pageable));
+    public ResponseEntity<List<CalenderDto.Response>> getAllCalenders() {
+        return ResponseEntity.ok(CalenderService.getAllCalenders());
     }
 }

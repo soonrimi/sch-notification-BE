@@ -5,7 +5,8 @@ public enum TargetYear {
     FIRST_YEAR("1학년"),
     SECOND_YEAR("2학년"),
     THIRD_YEAR("3학년"),
-    FOURTH_YEAR("4학년");
+    FOURTH_YEAR("4학년"),
+    FIFTH_YEAR("5학년");
 
     private final String description;
 

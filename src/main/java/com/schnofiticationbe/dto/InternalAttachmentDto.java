@@ -1,5 +1,6 @@
 package com.schnofiticationbe.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder; // Lombok Builder
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import com.schnofiticationbe.entity.Attachment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(requiredProperties = {"fileName", "fileUrl"})
 public class InternalAttachmentDto {
     private String fileName;
     private String fileUrl;
