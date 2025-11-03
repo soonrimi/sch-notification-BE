@@ -195,6 +195,10 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일치하지 않습니다.");
         }
 
+        if (!emailService.isVerified(req.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다.");
+        }
+
         Admin admin = new Admin();
         admin.setUserId(req.getUserId());
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
@@ -210,6 +214,8 @@ public class AdminService {
 
         Admin saved = adminRepository.save(admin);
         sendVerificationMail(saved.getUserId());
+
+        emailService.removeToken(req.getUserId());
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
     }
