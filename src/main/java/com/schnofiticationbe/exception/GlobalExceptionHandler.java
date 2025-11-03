@@ -7,10 +7,13 @@ import com.schnofiticationbe.entity.LogLevel;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,6 +31,27 @@ import java.io.StringWriter;
 public class GlobalExceptionHandler {
 
     private final LogContextHolder logContextHolder;
+
+    @ExceptionHandler(ResponseStatusException.class)
+    protected ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e, HttpServletRequest request) {
+        log.warn("ResponseStatusException caught: {} {}", e.getStatusCode(), e.getReason());
+
+        Log.LogBuilder logBuilder = logContextHolder.get();
+        if (logBuilder != null) {
+            logBuilder.logLevel(LogLevel.WARN)
+                    .message(e.getReason())
+                    .httpStatus(e.getStatusCode().value())
+                    .exceptionDetails(getStackTraceAsString(e));
+        }
+
+        // HttpStatusCode -> HttpStatus 변환 (표준 상태가 아닐 수 있으므로 안전하게 처리)
+        HttpStatus resolvedStatus = HttpStatus.resolve(e.getStatusCode().value());
+        if (resolvedStatus == null) {
+            resolvedStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        return new ResponseEntity<>(ErrorResponse.of(resolvedStatus, e.getReason()), resolvedStatus);
+    }
 
     /**
      * 예측된 비즈니스 예외 (예: 로그인 실패, 잘못된 입력값)를 처리합니다. (내과 의사 역할)
