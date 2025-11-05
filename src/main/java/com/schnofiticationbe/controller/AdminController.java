@@ -28,9 +28,36 @@ public class AdminController {
         return ResponseEntity.ok(adminService.register(req));
     }
 
+    @PostMapping("/send-verification")
+    public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
+        String userId = body.get("userId");
+        adminService.sendVerificationMail(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(
+            @RequestParam("userId") String userId,
+            @RequestParam("token") String token) {
+
+        if (emailService.verifyToken(userId, token)) {
+            // 이메일 서비스의 인메모리 Set 대신, AdminService를 통해 DB에 상태 업데이트
+            adminService.markEmailAsVerified(userId);
+
+            return ResponseEntity.ok("이메일 인증 완료!");
+        } else {
+            return ResponseEntity.badRequest().body("잘못된 토큰이거나 만료됨");
+        }
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<AdminDto.LoginResponse> login(@RequestBody AdminDto.LoginRequest req) {
-        return ResponseEntity.ok(adminService.login(req));
+    public ResponseEntity<String> loginEmail(@RequestBody AdminDto.EmailLoginRequest req) {
+        return ResponseEntity.ok(adminService.loginWithEmailOtp(req));
+    }
+
+    @PostMapping("/otp")
+    public ResponseEntity<AdminDto.LoginResponse> verifyOtp(@RequestBody AdminDto.OtpVerifyRequest req) {
+        return ResponseEntity.ok(adminService.verifyEmailOtp(req));
     }
 
     @PostMapping("/reset-password")
@@ -87,37 +114,5 @@ public class AdminController {
             @RequestBody AdminDto.AdminDeleteRequest req
     ) {
         return ResponseEntity.ok(adminService.deleteAdmin(adminId, req));
-    }
-
-    @PostMapping("/send-verification")
-    public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-        adminService.sendVerificationMail(userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(
-            @RequestParam("userId") String userId,
-            @RequestParam("token") String token) {
-
-        if (emailService.verifyToken(userId, token)) {
-            emailService.markVerified(userId);
-
-            return ResponseEntity.ok("이메일 인증 완료!");
-        } else {
-            return ResponseEntity.badRequest().body("잘못된 토큰이거나 만료됨");
-        }
-    }
-
-    // 새 로그인 api (기존 /login 사용X)
-    @PostMapping("/login-email")
-    public ResponseEntity<String> loginEmail(@RequestBody AdminDto.EmailLoginRequest req) {
-        return ResponseEntity.ok(adminService.loginWithEmailOtp(req));
-    }
-
-    @PostMapping("/otp")
-    public ResponseEntity<AdminDto.LoginResponse> verifyOtp(@RequestBody AdminDto.OtpVerifyRequest req) {
-        return ResponseEntity.ok(adminService.verifyEmailOtp(req));
     }
 }

@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +38,6 @@ public class AdminService {
     private final DepartmentRepository departmentRepository;
     private final EmailService emailService;
     private final JavaMailSender mailSender;
-    private final Map<String, String> emailVerificationTokens = new ConcurrentHashMap<>();
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
@@ -59,6 +59,11 @@ public class AdminService {
 
         if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
+        }
+
+        // 이메일 인증 여부 확인
+        if (!admin.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다. 이메일 인증을 먼저 해주세요.");
         }
 
         int otp = (int) (Math.random() * 900000) + 100000;
@@ -161,8 +166,15 @@ public class AdminService {
 
             helper.setFrom(mailUsername);
 
-            String htmlContent = "<a href=\"" + link + "\">이메일 인증</a>"
-                    + "<p> 위 버튼을 누른 뒤 다시 회원가입 폼으로 돌아가 나머지를 작성해주세요.</p>";
+            String htmlContent = "<h1>순천향대학교 Soonrimi</h1>"
+                    + "<p>총학생회에서 당신의 계정으로 회원가입을 완료했습니다.</p>"
+                    + "<p>본인 인증을 하기 위해 먼저 아래 링크로 들어가 이메일 인증을 해 주세요.</p>"
+                    + "<a href=\"" + link + "\">이메일 인증</a>"
+                    + "<p>이 링크는 본인 인증을 위한 것으로 최초 1회만 사용될 것입니다.</p>"
+                    + "<p>인증 완료 후 로그인 시도를 한 번 해보시고, 만약 로그인이 되지 않을 시 총학생회에 문의해주십시오.</p>"
+                    + "<p>또한 앞으로 로그인 시 이 이메일로 인증번호 6자리가 발송될 것입니다."
+                    + "<p>순리미에 오신 걸 환영합니다!</p>";
+
 
             helper.setText(htmlContent, true);
 
@@ -192,37 +204,20 @@ public class AdminService {
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         admin.setName(req.getName());
         admin.setAffiliation(req.getAffiliation());
-        admin.setEmailVerified(true);
-        admin.setEmailVerificationToken(null);
+        admin.setEmailVerified(false);
+        String token = UUID.randomUUID().toString();
+        emailService.saveToken(req.getUserId(), token);
+        admin.setEmailVerificationToken(token);
 
         List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
         admin.setDepartments(new HashSet<>(departments));
 
         Admin saved = adminRepository.save(admin);
+        sendVerificationMail(saved.getUserId());
 
         emailService.removeToken(req.getUserId());
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
-    }
-
-    public AdminDto.LoginResponse login(AdminDto.LoginRequest req) {
-        Admin admin = adminRepository.findByUserId(req.getUserId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
-
-
-        if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
-        }
-
-        // JWT 토큰 생성 (JwtProvider 사용)
-        String token = jwtProvider.createToken(admin.getUserId(), admin.getAffiliation());
-
-        return new AdminDto.LoginResponse(
-            admin.getUserId(),
-            admin.getName(),
-            "로그인 성공",
-            token
-        );
     }
 
     public AdminDto.MessageResponse resetPassword(AdminDto.ResetPasswordRequest req) {
@@ -235,6 +230,14 @@ public class AdminService {
 
         // 임시 비밀번호 반환
         return new AdminDto.MessageResponse("비밀번호가 수정 되었습니다.");
+    }
+
+    @Transactional
+    public void markEmailAsVerified(String userId) {
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+        admin.setEmailVerified(true);
+        adminRepository.save(admin);
     }
 
 //    public void updatePassword(String userId, String rawPassword) {
