@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -101,9 +102,9 @@ public class AdminService {
 
 
     // 공지 생성 (InternalNotice)
-    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
-        String userId = jwtProvider.getUserId(jwtToken);
-        Admin admin = adminRepository.findByUserId(userId)
+    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(Authentication jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
+        String userIdInToken=jwtToken.getName();
+        Admin admin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
 
         Set<Department> departments = new HashSet<>(departmentRepository.findAllById(req.getTargetDepartmentIds()));
@@ -259,9 +260,9 @@ public class AdminService {
         adminRepository.save(admin);
     }
 
-    public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(String jwtToken) {
-        String userId = jwtProvider.getUserId(jwtToken);
-        Admin getCurrentAdmin = adminRepository.findByUserId(userId)
+    public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(Authentication jwtToken) {
+        String userIdInToken=jwtToken.getName();
+        Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
