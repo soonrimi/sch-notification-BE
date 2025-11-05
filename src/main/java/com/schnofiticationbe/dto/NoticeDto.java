@@ -4,6 +4,7 @@ import com.schnofiticationbe.entity.*;
 import com.schnofiticationbe.entity.NoticeType;
 import com.schnofiticationbe.entity.TargetYear;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.sql.Timestamp;
@@ -21,6 +22,7 @@ public class NoticeDto {
      * 공지 목록 조회 시 사용되는 간결한 응답 DTO입니다.
      */
     @Getter
+    @Schema(requiredProperties = {"id", "title", "createdAt", "viewCount", "writer", "content", "noticeType", "categoryName"})
     public static class ListResponse {
         private final Long id;
         private final String title;
@@ -56,6 +58,7 @@ public class NoticeDto {
      * 단일 공지 상세 조회 시 사용되는 모든 정보를 포함하는 응답 DTO입니다.
      */
     @Getter
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "viewCount", "categoryName", "noticeType", "targetYear", "targetDept", "attachments"})
     public static class DetailResponse {
         private final Long id;
         private final String title;
@@ -111,6 +114,7 @@ public class NoticeDto {
      * 첨부파일 정보를 담는 공통 DTO입니다.
      */
     @Getter
+    @Schema(requiredProperties = {"id", "fileName", "fileUrl"})
     public static class AttachmentResponse {
         private final Long id;
         private final String fileName;

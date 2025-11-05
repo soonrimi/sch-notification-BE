@@ -1,6 +1,7 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Subscribe;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ public class SubscribeDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(requiredProperties = {"category", "device"})
     public static class SubscribeCreateRequest {
         private String category;
         private String device; // 필수
@@ -25,6 +27,7 @@ public class SubscribeDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(requiredProperties = {"category", "device"})
     public static class SubscribeUpdateRequest {
         private String category;
         private String device;
@@ -52,6 +55,7 @@ public class SubscribeDto {
     }
 
     @Data
+    @Schema(requiredProperties = {"id", "category", "device", "createdDate"})
     public static class SubscribeResponse {
         private int id;
         private String category;

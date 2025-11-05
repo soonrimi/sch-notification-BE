@@ -40,4 +40,5 @@ out/
 
 # JWT RSA Private Key
 src/main/resources/keys/private.pem
-logs/app.log
+/logs/*
+*.log
