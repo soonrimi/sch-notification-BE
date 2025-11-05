@@ -36,6 +36,17 @@ public class KeywordController {
         return ResponseEntity.ok(list);
     }
 
+    // ★ device 기준 조회 추가 (요청된 변경 사항)
+    // 예: GET /keywords/device/{device_id}
+    @GetMapping("/device/{device}")
+    public ResponseEntity<List<KeywordDto.Response>> getByDevice(@PathVariable("device") String device) {
+        List<KeywordDto.Response> list = keywordService.getAllByDevice(device)
+                .stream()
+                .map(KeywordDto.Response::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<KeywordDto.Response> getOne(@PathVariable int id) {
         KeywordNotification k = keywordService.getOne(id);
@@ -62,7 +73,7 @@ public class KeywordController {
         return ResponseEntity.noContent().build();
     }
 
-    // 부분적으로 포함/제외 키워드만 패치하고 싶을 때 (예시)
+    // 선택: 부분 수정용 엔드포인트가 이미 있다면 그대로 유지 가능
     @PatchMapping("/{id}/include")
     public ResponseEntity<KeywordDto.Response> patchInclude(
             @PathVariable int id,
