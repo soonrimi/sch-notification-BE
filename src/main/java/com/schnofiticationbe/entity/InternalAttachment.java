@@ -11,7 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @DiscriminatorValue("INTERNAL")
-@Schema(requiredProperties = {"id", "fileName", "fileUrl" ,"in"})
 public class InternalAttachment extends Attachment{
 
     @ManyToOne(fetch = FetchType.LAZY)

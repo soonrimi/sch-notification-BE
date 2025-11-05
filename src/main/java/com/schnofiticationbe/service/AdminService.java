@@ -132,10 +132,12 @@ public class AdminService {
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
                         attachment.setInternalNotice(savedNotice);
+                        savedNotice.addAttachment(attachment);
                         // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
-                        InternalAttachmentRepository.save(attachment);
+//                        InternalAttachmentRepository.save(attachment);
                     }
                 }
+                savedNotice = internalNoticeRepository.save(savedNotice);
             }
             return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
 
