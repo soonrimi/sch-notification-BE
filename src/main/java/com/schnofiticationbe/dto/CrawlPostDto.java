@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,7 @@ public class CrawlPostDto {
     }
 
     @Getter
-    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments"})
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments", "contentImageUrls"})
     public static class CrawlPostsResponse {
         private Long id;
         private String title;
@@ -56,6 +57,7 @@ public class CrawlPostDto {
         private Integer viewCount;
         private NoticeType noticeType;
         private List<AttachmentResponse> attachments;
+        private List<String> contentImageUrls;
 
         public CrawlPostsResponse(CrawlPosts crawlPosts) {
             this.id = crawlPosts.getId();
@@ -69,6 +71,14 @@ public class CrawlPostDto {
             this.attachments = crawlPosts.getCrawlAttachments().stream()
                 .map(crawlAttachment -> new AttachmentResponse(crawlAttachment))
                 .collect(Collectors.toList());
+            List<String> images = crawlPosts.getContentImageUrls();
+            if (images != null) {
+                // 엔티티의 리스트를 직접 참조하지 않고, 새 리스트로 복사합니다.
+                this.contentImageUrls = new ArrayList<>(images);
+            } else {
+                // null 대신 빈 리스트를 반환합니다.
+                this.contentImageUrls = new ArrayList<>();
+            }
         }
     }
 }
