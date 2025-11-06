@@ -34,6 +34,7 @@ public class Log {
     private String requestUri;
     private String httpMethod;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String message;
 
     @Lob
