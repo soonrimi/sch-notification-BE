@@ -73,10 +73,8 @@ public class CrawlPostDto {
                 .collect(Collectors.toList());
             List<String> images = crawlPosts.getContentImages();
             if (images != null) {
-                // 엔티티의 리스트를 직접 참조하지 않고, 새 리스트로 복사합니다.
                 this.contentImages = new ArrayList<>(images);
             } else {
-                // null 대신 빈 리스트를 반환합니다.
                 this.contentImages = new ArrayList<>();
             }
         }

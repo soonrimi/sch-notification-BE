@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import com.schnofiticationbe.Utils.JsonStringListConverter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,7 +37,7 @@ public class CrawlPosts extends Notice {
         attachment.setCrawlPosts(this);
     }
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "content_images", columnDefinition = "json")
+    @Convert(converter = JsonStringListConverter.class)
+    @Column(name = "content_images", columnDefinition = "LONGTEXT")
     private List<String> contentImages;
 }
