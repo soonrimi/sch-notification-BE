@@ -46,7 +46,7 @@ public class CrawlPostDto {
     }
 
     @Getter
-    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments", "contentImageUrls"})
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments", "contentImages"})
     public static class CrawlPostsResponse {
         private Long id;
         private String title;
@@ -57,7 +57,7 @@ public class CrawlPostDto {
         private Integer viewCount;
         private NoticeType noticeType;
         private List<AttachmentResponse> attachments;
-        private List<String> contentImageUrls;
+        private List<String> contentImages;
 
         public CrawlPostsResponse(CrawlPosts crawlPosts) {
             this.id = crawlPosts.getId();
@@ -71,13 +71,13 @@ public class CrawlPostDto {
             this.attachments = crawlPosts.getCrawlAttachments().stream()
                 .map(crawlAttachment -> new AttachmentResponse(crawlAttachment))
                 .collect(Collectors.toList());
-            List<String> images = crawlPosts.getContentImageUrls();
+            List<String> images = crawlPosts.getContentImages();
             if (images != null) {
                 // 엔티티의 리스트를 직접 참조하지 않고, 새 리스트로 복사합니다.
-                this.contentImageUrls = new ArrayList<>(images);
+                this.contentImages = new ArrayList<>(images);
             } else {
                 // null 대신 빈 리스트를 반환합니다.
-                this.contentImageUrls = new ArrayList<>();
+                this.contentImages = new ArrayList<>();
             }
         }
     }

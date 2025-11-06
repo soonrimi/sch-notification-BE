@@ -102,7 +102,7 @@ public class NoticeDto {
                 this.attachments = crawlPosts.getCrawlAttachments().stream()
                         .map(AttachmentResponse::new)
                         .collect(Collectors.toList());
-                this.contentUrls = crawlPosts.getContentImageUrls();
+                this.contentUrls = crawlPosts.getContentImages();
             } else {
                 this.writer = "알 수 없음";
                 this.noticeType = null;

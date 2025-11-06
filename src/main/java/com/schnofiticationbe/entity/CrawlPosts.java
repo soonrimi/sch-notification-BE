@@ -38,5 +38,5 @@ public class CrawlPosts extends Notice {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "content_images", columnDefinition = "json")
-    private List<String> contentImageUrls;
+    private List<String> contentImages;
 }
