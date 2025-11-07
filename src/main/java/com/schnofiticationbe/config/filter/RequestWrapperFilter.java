@@ -16,8 +16,13 @@ public class RequestWrapperFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest){
             HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-            CustomHttpRequestWrapper wrappedRequest = new CustomHttpRequestWrapper(httpServletRequest);
-            chain.doFilter(wrappedRequest, response);
+            String contentType = httpServletRequest.getContentType();
+            if (contentType!=null&& contentType.startsWith("multipart/form-data")){
+                chain.doFilter(request, response);
+            }else{
+                CustomHttpRequestWrapper wrappedRequest = new CustomHttpRequestWrapper(httpServletRequest);
+                chain.doFilter(wrappedRequest, response);
+            }
         } else {
             chain.doFilter(request, response);
         }

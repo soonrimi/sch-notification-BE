@@ -14,7 +14,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Schema(requiredProperties = {"id", "title", "content", "createdAt", "view_count", "writer", "targetYear", "targetDept", "sentToKakao", "InternalAttachment"})
+@Schema(requiredProperties = {"writer_id", "targetYear", "targetDept", "sentToKakao", "InternalAttachment"})
 @DiscriminatorValue("INTERNAL")
 public class InternalNotice extends Notice {
 
