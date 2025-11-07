@@ -80,6 +80,7 @@ public class AdminController {
 
     @PostMapping(value = "/internal-notice", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InternalNoticeDto.InternalNoticeListResponse> createInternalNotice(
+            @RequestHeader ("Authorization") String authorization,
             @RequestPart("internalNotice") InternalNoticeDto.CreateInternalNoticeRequest req,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
@@ -88,7 +89,9 @@ public class AdminController {
     }
 
     @GetMapping("/my-notices")
-    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices() {
+    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices(
+            @RequestHeader ("Authorization") String authorization
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(adminService.getMyInternalNotice(authentication));
     }
