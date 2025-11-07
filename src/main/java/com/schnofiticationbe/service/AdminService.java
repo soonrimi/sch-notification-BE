@@ -46,6 +46,9 @@ public class AdminService {
     @Value("${spring.mail.username}")
     private String mailUsername;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
     @Data
     @AllArgsConstructor
     static class OtpData {
@@ -151,36 +154,32 @@ public class AdminService {
         }
     }
 
-    public void sendVerificationMail(String email) {
-        String token = UUID.randomUUID().toString();
-        emailService.saveToken(email, token);
+    private String buildVerifyLink(String email, String token) {
+        return baseUrl + "/api/admin/verify?userId=" + email + "&token=" + token;
+    }
 
-//        String link = "http://notification.iubns.net/api/admin/verify?userId=" + email + "&token=" + token;
-        String link = "http://localhost:7100/api/admin/verify?userId=" + email + "&token=" + token;
+
+    public void sendVerificationMail(String email, String token) {
+        String link = buildVerifyLink(email, token);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setTo(email);
             helper.setSubject("[순천향대학교 Soonrimi] 이메일 인증");
-
             helper.setFrom(mailUsername);
 
-            String htmlContent = "<h1>순천향대학교 Soonrimi</h1>"
-                    + "<p>총학생회에서 당신의 계정으로 회원가입을 완료했습니다.</p>"
-                    + "<p>본인 인증을 하기 위해 먼저 아래 링크로 들어가 이메일 인증을 해 주세요.</p>"
-                    + "<a href=\"" + link + "\">이메일 인증</a>"
-                    + "<p>이 링크는 본인 인증을 위한 것으로 최초 1회만 사용될 것입니다.</p>"
-                    + "<p>인증 완료 후 로그인 시도를 한 번 해보시고, 만약 로그인이 되지 않을 시 총학생회에 문의해주십시오.</p>"
-                    + "<p>또한 앞으로 로그인 시 이 이메일로 인증번호 6자리가 발송될 것입니다."
-                    + "<p>순리미에 오신 걸 환영합니다!</p>";
-
+            String htmlContent =
+                    "<h1>순천향대학교 Soonrimi</h1>"
+                            + "<p>총학생회에서 당신의 계정으로 회원가입을 완료했습니다.</p>"
+                            + "<p>본인 인증을 위해 아래 링크로 이메일 인증을 해 주세요.</p>"
+                            + "<a href=\"" + link + "\">이메일 인증</a>"
+                            + "<p>이 링크는 최초 1회만 사용됩니다.</p>"
+                            + "<p>인증 완료 후 로그인이 되지 않으면 총학생회로 문의해주십시오.</p>"
+                            + "<p>앞으로 로그인 시 이 이메일로 6자리 OTP가 발송됩니다.</p>"
+                            + "<p>순리미에 오신 걸 환영합니다!</p>";
 
             helper.setText(htmlContent, true);
-
             mailSender.send(message);
-
-
         } catch (MessagingException e) {
             throw new RuntimeException("메일 발송 실패", e);
         }
@@ -202,14 +201,13 @@ public class AdminService {
         admin.setAffiliation(req.getAffiliation());
         admin.setEmailVerified(false);
         String token = UUID.randomUUID().toString();
-        emailService.saveToken(req.getUserId(), token);
         admin.setEmailVerificationToken(token);
 
         List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
         admin.setDepartments(new HashSet<>(departments));
 
         Admin saved = adminRepository.save(admin);
-        sendVerificationMail(saved.getUserId());
+        sendVerificationMail(saved.getUserId(), token);
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
     }
@@ -226,13 +224,39 @@ public class AdminService {
         return new AdminDto.MessageResponse("비밀번호가 수정 되었습니다.");
     }
 
+
     @Transactional
-    public void markEmailAsVerified(String userId) {
+    public void resendVerificationMail(String userId) {
         Admin admin = adminRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
-        admin.setEmailVerified(true);
-        adminRepository.save(admin);
+
+        if (admin.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 이메일 인증이 완료되었습니다.");
+        }
+
+        String token = admin.getEmailVerificationToken();
+        if (token == null || token.isBlank()) {
+            token = UUID.randomUUID().toString();
+            admin.setEmailVerificationToken(token);
+            // @Transactional 때문에 flush는 자동; 확실히 하려면 adminRepository.save(admin);
+        }
+
+        sendVerificationMail(admin.getUserId(), token);
     }
+
+    @Transactional
+    public void verifyEmail(String userId, String token) {
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        if (admin.getEmailVerificationToken() == null || !admin.getEmailVerificationToken().equals(token)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 링크입니다.");
+        }
+
+        admin.setEmailVerified(true);
+        admin.setEmailVerificationToken(null); // 재사용 불가
+    }
+
 
 //    public void updatePassword(String userId, String rawPassword) {
 //        Admin admin = adminRepository.findByUsername(userId)

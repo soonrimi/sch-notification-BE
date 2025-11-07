@@ -31,23 +31,14 @@ public class AdminController {
     @PostMapping("/send-verification")
     public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
         String userId = body.get("userId");
-        adminService.sendVerificationMail(userId);
+        adminService.resendVerificationMail(userId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(
-            @RequestParam("userId") String userId,
-            @RequestParam("token") String token) {
-
-        if (emailService.verifyToken(userId, token)) {
-            // 이메일 서비스의 인메모리 Set 대신, AdminService를 통해 DB에 상태 업데이트
-            adminService.markEmailAsVerified(userId);
-
-            return ResponseEntity.ok("이메일 인증 완료!");
-        } else {
-            return ResponseEntity.badRequest().body("잘못된 토큰이거나 만료됨");
-        }
+    public ResponseEntity<?> verify(@RequestParam String userId, @RequestParam String token) {
+        adminService.verifyEmail(userId, token);
+        return ResponseEntity.ok("인증 완료");
     }
 
     @PostMapping("/login")
