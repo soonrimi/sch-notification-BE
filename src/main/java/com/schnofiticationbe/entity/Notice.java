@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED )
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "notice_type", discriminatorType = DiscriminatorType.STRING)
 @Table(name = "notice")
 @Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "category", "noticeType"})
@@ -27,7 +27,7 @@ public abstract class Notice{
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "LONGTEXT", nullable = false, name = "content")
     private String content;
 
     @CreationTimestamp

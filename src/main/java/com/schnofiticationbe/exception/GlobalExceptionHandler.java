@@ -32,6 +32,10 @@ public class GlobalExceptionHandler {
 
     private final LogContextHolder logContextHolder;
 
+    /**
+     * ResponseStatusException은 서비스/컨트롤러에서 명시적으로 상태를 지정해 던지는 예외입니다.
+     * 해당 예외는 원래 가진 HTTP 상태와 메시지를 그대로 클라이언트에 전달해야 합니다.
+     */
     @ExceptionHandler(ResponseStatusException.class)
     protected ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e, HttpServletRequest request) {
         log.warn("ResponseStatusException caught: {} {}", e.getStatusCode(), e.getReason());

@@ -10,6 +10,8 @@ import com.schnofiticationbe.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,16 +71,20 @@ public class AdminController {
 
     @PostMapping(value = "/internal-notice", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InternalNoticeDto.InternalNoticeListResponse> createInternalNotice(
-            @RequestHeader("Authorization") String authorization,
+            @RequestHeader ("Authorization") String authorization,
             @RequestPart("internalNotice") InternalNoticeDto.CreateInternalNoticeRequest req,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
-        return ResponseEntity.ok(adminService.createInternalNotice(authorization, req, files));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(adminService.createInternalNotice(authentication, req, files));
     }
 
     @GetMapping("/my-notices")
-    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices(@RequestHeader("Authorization") String authorization) {
-        return ResponseEntity.ok(adminService.getMyInternalNotice(authorization));
+    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices(
+            @RequestHeader ("Authorization") String authorization
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(adminService.getMyInternalNotice(authentication));
     }
 
     @GetMapping("/departments")
