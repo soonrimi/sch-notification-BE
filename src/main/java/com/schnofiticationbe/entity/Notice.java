@@ -27,7 +27,7 @@ public abstract class Notice{
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "LONGTEXT", nullable = false, name = "content")
     private String content;
 
     @CreationTimestamp

@@ -58,7 +58,7 @@ public class NoticeDto {
      * 단일 공지 상세 조회 시 사용되는 모든 정보를 포함하는 응답 DTO입니다.
      */
     @Getter
-    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "viewCount", "categoryName", "noticeType", "targetYear", "targetDept", "attachments"})
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "viewCount", "categoryName", "noticeType", "targetYear", "targetDept", "attachments", "contentUrls"})
     public static class DetailResponse {
         private final Long id;
         private final String title;
@@ -71,6 +71,7 @@ public class NoticeDto {
         private final TargetYear targetYear; // InternalNotice 전용
         private final Set<Department> targetDept; // InternalNotice 전용
         private final List<AttachmentResponse> attachments;
+        private final List<String> contentUrls; // CrawlPosts 전용
 
         public DetailResponse(Notice notice) {
             this.id = notice.getId();
@@ -92,6 +93,7 @@ public class NoticeDto {
                 this.attachments = internalNotice.getInternalAttachment().stream()
                         .map(AttachmentResponse::new)
                         .collect(Collectors.toList());
+                this.contentUrls = Collections.emptyList();
             } else if (notice instanceof CrawlPosts crawlPosts) {
                 this.writer = crawlPosts.getWriter();
                 this.noticeType = NoticeType.CRAWL;
@@ -100,12 +102,14 @@ public class NoticeDto {
                 this.attachments = crawlPosts.getCrawlAttachments().stream()
                         .map(AttachmentResponse::new)
                         .collect(Collectors.toList());
+                this.contentUrls = crawlPosts.getContentImages();
             } else {
                 this.writer = "알 수 없음";
                 this.noticeType = null;
                 this.targetYear = null;
                 this.targetDept = Collections.emptySet();
                 this.attachments = Collections.emptyList();
+                this.contentUrls = Collections.emptyList();
             }
         }
     }

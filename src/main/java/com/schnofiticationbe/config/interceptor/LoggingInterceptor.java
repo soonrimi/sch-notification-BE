@@ -15,11 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 ///모든 API 요청/응답을 가로채 로그를 기록하는 인터셉터
 @Component
@@ -47,8 +50,12 @@ public class LoggingInterceptor implements HandlerInterceptor {
         // 정보 수집
         String requestBody = getMaskedRequestBody(request);
         Map<String, String> requestParams = getMaskedRequestParams(request);
+        Map<String, String> fileInfo = getMultipartFileInfo(request);
 
-        String requestParamsJson = paramsToJson(requestParams);
+        Map<String, Object> loggableParams = new HashMap<>();
+        if (requestParams != null) loggableParams.put("fields", requestParams);
+        if (fileInfo != null) loggableParams.put("files", fileInfo);
+        String dbParamsJson = paramsMapToJson(loggableParams);
 
         Log.LogBuilder logBuilder = Log.builder()
                 .traceId(traceId)
@@ -56,11 +63,11 @@ public class LoggingInterceptor implements HandlerInterceptor {
                 .httpMethod(request.getMethod())
                 .clientIp(request.getRemoteAddr())
                 .requestBody(requestBody)
-                .requestParams(requestParamsJson);
+                .requestParams(dbParamsJson);
         logContextHolder.init(logBuilder);
 
         // 입력 로그 출력
-        String requestLog = createRequestLog(request, requestParams, requestBody);
+        String requestLog = createRequestLog(request, requestParams, requestBody, fileInfo);
         consoleLogger.info(requestLog);
         fileLogger.info(requestLog);
 
@@ -100,12 +107,12 @@ public class LoggingInterceptor implements HandlerInterceptor {
     }
 
 
-    private String createRequestLog(HttpServletRequest request, Map<String, String> params, String body) {
-        StringBuilder logMessage = new StringBuilder();
+    private String createRequestLog(HttpServletRequest request, Map<String, String> params, String body, Map<String, String> fileInfo) {        StringBuilder logMessage = new StringBuilder();
         logMessage.append(String.format("ID:[%s] Method:[%s] URL:[%s] Client:[%s] --- Request Start ---",
                 MDC.get("traceId"), request.getMethod(), request.getRequestURI(), request.getRemoteAddr()));
 
         if (params != null && !params.isEmpty()) logMessage.append("\nParams : ").append(params);
+        if (fileInfo != null && !fileInfo.isEmpty()) logMessage.append("\nFiles (Metadata) : ").append(fileInfo); // 👈 [추가]
         if (body != null && !body.isEmpty()) logMessage.append("\nRequest Body : ").append(body);
 
         return logMessage.toString();
@@ -132,7 +139,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         return finalLogLevel;
     }
 
-    private String paramsToJson(Map<String, String> params) {
+    private String paramsMapToJson(Map<String, ?> params) {
         if (params == null || params.isEmpty()) {
             return null;
         }
@@ -279,5 +286,26 @@ public class LoggingInterceptor implements HandlerInterceptor {
         // "content" 배열이 없는 긴 JSON의 경우, 그냥 앞에서부터 자르기
         return jsonBody.substring(0, maxLength) + "... (truncated)";
     }
+    private Map<String, String> getMultipartFileInfo(HttpServletRequest request) {
+        // 요청 객체를 MultipartHttpServletRequest로 캐스팅 시도
+        if (request instanceof MultipartHttpServletRequest multipartRequest) {
+            Map<String, List<MultipartFile>> fileMap = multipartRequest.getMultiFileMap();
+            if (fileMap.isEmpty()) {
+                return null;
+            }
 
+            Map<String, String> fileDetails = new HashMap<>();
+            // 각 파일 파트("files", "profileImage" 등)를 순회
+            fileMap.forEach((key, files) -> {
+                String fileInfo = files.stream()
+                        // "fileName.txt (1024 bytes)" 형식으로 변환
+                        .map(file -> String.format("%s (%d bytes)", file.getOriginalFilename(), file.getSize()))
+                        .collect(Collectors.joining(", ")); // 파일이 여러 개면 콤마로 연결
+                fileDetails.put(key, fileInfo);
+            });
+            return fileDetails;
+        }
+        // Multipart 요청이 아니면 null 반환
+        return null;
+    }
 }
