@@ -41,19 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            String userId = jwtProvider.getUserId(token);
-            String role = jwtProvider.getRole(token);
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
-        String bearer = request.getHeader("Authorization");
-        if (bearer != null && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
-        }
-        return null;
+        return request.getHeader("Authorization");
     }
 }
