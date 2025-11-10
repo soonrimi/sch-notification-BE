@@ -51,6 +51,8 @@ jobs:
             
             MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+
+            APP_BASE_URL=${{ secrets.APP_BASE_URL }}
             
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
             EOF
