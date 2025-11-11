@@ -3,6 +3,8 @@ package com.schnofiticationbe.service;
 import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.*;
+import com.schnofiticationbe.repository.AttachmentRepository;
+import com.schnofiticationbe.repository.InternalNoticeRepository;
 import com.schnofiticationbe.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,8 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.schnofiticationbe.repository.CrawlPostsRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,10 @@ import java.util.List;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
+    private final CrawlPostsRepository crawlPostsRepository;
+    private final InternalNoticeRepository internalNoticeRepository;
+    private final AttachmentRepository attachmentRepository;
+
 
     @Transactional
     public Page<NoticeDto.ListResponse> getCombinedNotices(Pageable pageable) {
@@ -27,16 +35,19 @@ public class NoticeService {
     return noticePage.map(NoticeDto.ListResponse::new);
     }
 
-    // 단일 공지 조회
-    @Transactional
     public NoticeDto.DetailResponse getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
 
-        notice.setViewCount(notice.getViewCount() + 1); // 조회수 증가
+        List<Attachment> attachments = attachmentRepository.findByNoticeId(id);
+        notice.setAttachments(attachments);
+
+        notice.setViewCount(notice.getViewCount() + 1);
         noticeRepository.save(notice);
+
         return new NoticeDto.DetailResponse(notice);
     }
+
 
 
     public Page<NoticeDto.ListResponse> searchNotices(String keyword, Pageable pageable) {
