@@ -6,13 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.Where;
-import org.hibernate.type.SqlTypes;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -34,4 +28,14 @@ public class CrawlPosts extends Notice {
     @Convert(converter = JsonStringListConverter.class)
     @Column(name = "content_images", columnDefinition = "LONGTEXT")
     private List<String> contentImages;
+
+    @Override
+    public String getWriterName() {
+        return this.writer != null ? this.writer : "정보 없음";
+    }
+
+    @Override
+    public NoticeType getNoticeTypeEnum() {
+        return NoticeType.CRAWL;
+    }
 }

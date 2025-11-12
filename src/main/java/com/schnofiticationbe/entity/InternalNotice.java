@@ -39,4 +39,14 @@ public class InternalNotice extends Notice {
     @Column(nullable = false, name = "sent_to_kakao")
     private Boolean sentToKakao = false;
 
+    @Override
+    public String getWriterName() {
+        return this.writer != null ? this.writer.getName() : "관리자";
+    }
+
+    @Override
+    public NoticeType getNoticeTypeEnum() {
+        return NoticeType.INTERNAL;
+    }
+
 }
