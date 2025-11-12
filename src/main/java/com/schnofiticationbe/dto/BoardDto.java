@@ -55,7 +55,7 @@ public class BoardDto {
             this.title = board.getTitle();
             this.content = board.getContent();
             this.createdAt = board.getCreatedAt();
-            this.attachments = board.getBoardAttachments().stream()
+            this.attachments = board.getAttachments().stream()
                     .map(AttachmentResponse::new)
                     .collect(Collectors.toList());
             this.noticeType=NoticeType.BOARD;
