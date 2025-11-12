@@ -2,7 +2,7 @@ name: Deploy to Server
 
 on:
   push:
-    branches: [deploy]
+    branches: [prd-deploy]
 
 jobs:
   deploy:
@@ -48,6 +48,11 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+
+            APP_BASE_URL=${{ secrets.APP_BASE_URL }}
             
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
             EOF

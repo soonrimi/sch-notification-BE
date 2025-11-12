@@ -64,13 +64,4 @@ public class JwtProvider {
                 .getPayload();
             return claims.getSubject();
     }
-
-    public String getRole(String token) {
-            Claims claims = (Claims) Jwts.parser()
-                .verifyWith(publicKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-            return (String) claims.get("role");
-    }
 }

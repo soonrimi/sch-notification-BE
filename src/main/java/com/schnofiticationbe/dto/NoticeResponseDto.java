@@ -1,9 +1,11 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,19 +14,22 @@ public class NoticeResponseDto {
 
     // 첨부파일 응답 DTO는 공통으로 사용 가능 (filename, fileUrl만 필요하므로)
     @Getter
+    @Schema(requiredProperties = {"id","fileName", "fileUrl"})
     public static class AttachmentResponse {
-        private String fileName;
-        private String fileUrl;
+        private final Long id;
+        private final String fileName;
+        private final String fileUrl;
 
-        // 생성자는 파일 정보만 받도록 변경
-        public AttachmentResponse(String fileName, String fileUrl) {
-            this.fileName = fileName;
-            this.fileUrl = fileUrl;
+        public AttachmentResponse(Attachment attachment) {
+            this.id = attachment.getId();
+            this.fileName = attachment.getFileName();
+            this.fileUrl = attachment.getFileUrl();
         }
     }
 
     // 모든 게시물을 포괄하는 공통 응답 DTO
     @Getter
+    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments"})
     public static class NoticeResponse {
         private Long id;
         private String title;
@@ -34,16 +39,14 @@ public class NoticeResponseDto {
         private Category category;
         private int viewCount;
         private NoticeType noticeType; // 게시물 출처 (CRAWL, INTERNAL)
-
+        private List<AttachmentResponse> attachments;
         // CrawlPosts 전용 필드 (InternalNotice일 경우 null)
         private String externalSourceUrl;
         private String source;
-        private List<CrawlAttachment> crawlAttachments;
 
         // InternalNotice 전용 필드 (CrawlPosts일 경우 null)
         private String targetYear;
         private Set<String> targetDeptNames;
-        private List<InternalAttachment> internalAttachments;
 
 
 
@@ -61,9 +64,13 @@ public class NoticeResponseDto {
             this.externalSourceUrl = crawlPosts.getExternalSourceUrl();
             this.source = crawlPosts.getSource();
 
-            this.crawlAttachments = crawlPosts.getCrawlAttachments().stream()
-                    .map(crawlAttachment -> new CrawlAttachment(crawlAttachment.getFileName(), crawlAttachment.getFileUrl()))
+            this.attachments = crawlPosts.getAttachments().stream()
+                    .map(AttachmentResponse::new)
                     .collect(Collectors.toList());
+
+            this.targetYear = null;
+            this.targetDeptNames = Collections.emptySet();
+
         }
 
         // InternalNotice -> NoticeResponse 변환 생성자
@@ -81,9 +88,12 @@ public class NoticeResponseDto {
             this.targetDeptNames = internalNotice.getTargetDept() != null ?
                     internalNotice.getTargetDept().stream().map(Department::getName).collect(Collectors.toSet()) : null;
 
-            this.internalAttachments = internalNotice.getInternalAttachment().stream()
-                    .map(internalAttachments -> new InternalAttachment(internalAttachments.getFileName(), internalAttachments.getFileUrl()))
+            this.attachments = internalNotice.getAttachments().stream()
+                    .map(AttachmentResponse::new)
                     .collect(Collectors.toList());
+
+            this.externalSourceUrl = null;
+            this.source = null;
         }
     }
 }

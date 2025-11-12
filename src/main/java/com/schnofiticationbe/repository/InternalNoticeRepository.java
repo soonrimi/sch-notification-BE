@@ -6,6 +6,7 @@ import com.schnofiticationbe.entity.InternalNotice;
 import com.schnofiticationbe.entity.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,8 +20,5 @@ public interface InternalNoticeRepository extends JpaRepository<InternalNotice, 
 
     // 카카오로 전송되지 않은 공지 리스트 반환
     List<InternalNotice> findBySentToKakaoFalse();
-
-    @Query("SELECT i FROM InternalNotice i LEFT JOIN FETCH i.InternalAttachment WHERE i.id = :id")
-    Optional<InternalNotice> findByIdWithAttachments(@Param("id") Long id);
 
 }

@@ -25,7 +25,4 @@ public class Subscribe {
 
     @CreationTimestamp
     private LocalDateTime createdDate;
-
-
-
 }
