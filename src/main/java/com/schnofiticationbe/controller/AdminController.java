@@ -10,6 +10,8 @@ import com.schnofiticationbe.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,23 +33,14 @@ public class AdminController {
     @PostMapping("/send-verification")
     public ResponseEntity<Void> sendVerification(@RequestBody Map<String, String> body) {
         String userId = body.get("userId");
-        adminService.sendVerificationMail(userId);
+        adminService.resendVerificationMail(userId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(
-            @RequestParam("userId") String userId,
-            @RequestParam("token") String token) {
-
-        if (emailService.verifyToken(userId, token)) {
-            // 이메일 서비스의 인메모리 Set 대신, AdminService를 통해 DB에 상태 업데이트
-            adminService.markEmailAsVerified(userId);
-
-            return ResponseEntity.ok("이메일 인증 완료!");
-        } else {
-            return ResponseEntity.badRequest().body("잘못된 토큰이거나 만료됨");
-        }
+    public ResponseEntity<?> verify(@RequestParam String userId, @RequestParam String token) {
+        adminService.verifyEmail(userId, token);
+        return ResponseEntity.ok("인증 완료");
     }
 
     @PostMapping("/login")
@@ -78,16 +71,20 @@ public class AdminController {
 
     @PostMapping(value = "/internal-notice", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InternalNoticeDto.InternalNoticeListResponse> createInternalNotice(
-            @RequestHeader("Authorization") String authorization,
+            @RequestHeader ("Authorization") String authorization,
             @RequestPart("internalNotice") InternalNoticeDto.CreateInternalNoticeRequest req,
             @RequestPart(value = "file", required = false) List<MultipartFile> files
     ) {
-        return ResponseEntity.ok(adminService.createInternalNotice(authorization, req, files));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(adminService.createInternalNotice(authentication, req, files));
     }
 
     @GetMapping("/my-notices")
-    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices(@RequestHeader("Authorization") String authorization) {
-        return ResponseEntity.ok(adminService.getMyInternalNotice(authorization));
+    public ResponseEntity<List<InternalNoticeDto.InternalNoticeListResponse>> getMyNotices(
+            @RequestHeader ("Authorization") String authorization
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(adminService.getMyInternalNotice(authentication));
     }
 
     @GetMapping("/departments")

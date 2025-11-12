@@ -3,6 +3,7 @@ package com.schnofiticationbe.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -12,9 +13,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("BOARD")
+@Table(name = "board")
 @Schema(name = "Board", description = "건의사항 엔티티", requiredProperties = {"id", "title", "content", "createdAt", "boardAttachments"})
-
 public class Board{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,22 +23,18 @@ public class Board{
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
     private String content;
 
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardAttachment> boardAttachments = new ArrayList<>();
+    private List<BoardAttachment> attachments = new ArrayList<>();
 
-    protected void onCreate() {
-        createdAt = new Timestamp(System.currentTimeMillis());
-    }
-
-    // == 연관관계 편의 메소드 == //
     public void addAttachment(BoardAttachment attachment) {
-        this.boardAttachments.add(attachment);
-        attachment.setBoard(this); // Attachment에도 Board 정보를 설정합니다. (양방향)
+        this.attachments.add(attachment);
+        attachment.setBoard(this);
     }
 }

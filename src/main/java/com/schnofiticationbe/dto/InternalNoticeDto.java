@@ -26,7 +26,7 @@ public class InternalNoticeDto {
     private String targetDept;
     private Boolean sentToKakao;
     private NoticeType noticeType;
-    private List<InternalAttachment> attachments;
+    private List<Attachment> attachments;
 
     // 생성 요청용 DTO
     @Getter
@@ -54,18 +54,6 @@ public class InternalNoticeDto {
     }
 
 
-    @Getter
-    public static class InternalNoticeAttachmentResponse {
-        private Long id;
-        private String fileName;
-        private String fileUrl;
-
-        public InternalNoticeAttachmentResponse(InternalAttachment internalAttachment) {
-            this.id = internalAttachment.getId();
-            this.fileName = internalAttachment.getFileName();
-            this.fileUrl = internalAttachment.getFileUrl();
-        }
-    }
 
     // 응답용 DTO
     @Getter
@@ -86,7 +74,7 @@ public class InternalNoticeDto {
         private TargetYear targetYear;
         private Set<Department> targetDept;
         private NoticeType noticeType;
-        private List<InternalNoticeAttachmentResponse> attachments;
+        private List<NoticeDto.AttachmentResponse> attachments;
 
         public InternalNoticeListResponse(InternalNotice notice) {
             this.id = notice.getId();
@@ -100,9 +88,10 @@ public class InternalNoticeDto {
             this.targetDept = notice.getTargetDept();
             this.category = notice.getCategory();
             this.noticeType = NoticeType.INTERNAL;
-            this.attachments = notice.getInternalAttachment().stream()
-                    .map(internalAttachment -> new InternalNoticeAttachmentResponse(internalAttachment))
+            this.attachments = notice.getAttachments().stream()
+                    .map(NoticeDto.AttachmentResponse::new) // 공통 DTO 생성자 사용
                     .collect(Collectors.toList());
+
         }
     }
 }

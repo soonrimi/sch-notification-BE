@@ -40,17 +40,8 @@ public class NoticeDto {
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
             this.content = notice.getContent();
-
-            if (notice instanceof InternalNotice internalNotice) {
-                this.writer = internalNotice.getWriter().getName();
-                this.noticeType = NoticeType.INTERNAL;
-            } else if (notice instanceof CrawlPosts crawlPosts) {
-                this.writer = crawlPosts.getWriter();
-                this.noticeType = NoticeType.CRAWL;
-            } else {
-                this.writer = "알 수 없음";
-                this.noticeType = null;
-            }
+            this.writer = notice.getWriterName();
+            this.noticeType = notice.getNoticeTypeEnum();
         }
     }
 
@@ -71,6 +62,7 @@ public class NoticeDto {
         private final TargetYear targetYear; // InternalNotice 전용
         private final Set<Department> targetDept; // InternalNotice 전용
         private final List<AttachmentResponse> attachments;
+        private final List<String> contentImages; // CrawlPosts 전용
 
         public DetailResponse(Notice notice) {
             this.id = notice.getId();
@@ -80,6 +72,9 @@ public class NoticeDto {
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
 
+            this.attachments = notice.getAttachments().stream()
+                    .map(AttachmentResponse::new)
+                    .collect(Collectors.toList());
             if (notice instanceof InternalNotice internalNotice) {
                 if (internalNotice.getWriter() != null) {
                     this.writer = internalNotice.getWriter().getName();
@@ -89,23 +84,21 @@ public class NoticeDto {
                 this.noticeType = NoticeType.INTERNAL;
                 this.targetYear = internalNotice.getTargetYear();
                 this.targetDept = internalNotice.getTargetDept();
-                this.attachments = internalNotice.getInternalAttachment().stream()
-                        .map(AttachmentResponse::new)
-                        .collect(Collectors.toList());
+                this.contentImages = Collections.emptyList();
+
             } else if (notice instanceof CrawlPosts crawlPosts) {
                 this.writer = crawlPosts.getWriter();
                 this.noticeType = NoticeType.CRAWL;
                 this.targetYear = null;
                 this.targetDept = Collections.emptySet();
-                this.attachments = crawlPosts.getCrawlAttachments().stream()
-                        .map(AttachmentResponse::new)
-                        .collect(Collectors.toList());
+                this.contentImages = crawlPosts.getContentImages();
+
             } else {
                 this.writer = "알 수 없음";
                 this.noticeType = null;
                 this.targetYear = null;
                 this.targetDept = Collections.emptySet();
-                this.attachments = Collections.emptyList();
+                this.contentImages = Collections.emptyList();
             }
         }
     }
@@ -120,16 +113,12 @@ public class NoticeDto {
         private final String fileName;
         private final String fileUrl;
 
-        public AttachmentResponse(InternalAttachment attachment) {
-            this.id = attachment.getId();
-            this.fileName = attachment.getFileName();
-            this.fileUrl = attachment.getFileUrl();
-        }
-
-        public AttachmentResponse(CrawlAttachment attachment) {
+        public AttachmentResponse(Attachment attachment) {
             this.id = attachment.getId();
             this.fileName = attachment.getFileName();
             this.fileUrl = attachment.getFileUrl();
         }
     }
+
 }
+
