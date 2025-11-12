@@ -1,19 +1,23 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("CrawlPosts")
+@DiscriminatorValue("CRAWL")
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "view_count", "writer", "category","externalSourceUrl", "source", "CrawlAttachments"})
 public class CrawlPosts extends Notice {
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String writer; // 크롤링된 공지의 작성자 (String)
 
     @Column(nullable = true)
@@ -22,9 +26,11 @@ public class CrawlPosts extends Notice {
     @Column()
     private String source; // 공지 출처 (예: 학교 홈페이지, 특정 게시판 등)
 
-    @Column()
-    private int categoryId;
+    @OneToMany(mappedBy = "crawlPosts", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CrawlAttachment> CrawlAttachments = new ArrayList<>();
 
-    @Column()
-    private String postTime;
+    public void addAttachment(CrawlAttachment attachment) {
+        this.CrawlAttachments.add(attachment);
+        attachment.setCrawlPosts(this);
+    }
 }

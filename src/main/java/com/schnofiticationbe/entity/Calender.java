@@ -13,7 +13,7 @@ import java.security.Timestamp;
 @Builder
 @Entity
 @Table(name = "calendar")
-@Schema(name = "Calendar", description = "캘린더 엔티티")
+@Schema(name = "Calendar", description = "캘린더 엔티티", requiredProperties = {"id", "title", "startDate", "endDate", "type"})
 public class Calender {
     @Id
     @Column(name = "id", nullable = false, unique = true)

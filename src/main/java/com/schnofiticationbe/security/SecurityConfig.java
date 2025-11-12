@@ -29,6 +29,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/swagger-ui/**", "/api/api-docs").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/api/subscribe/**").permitAll()
+                        .requestMatchers("/api/kakao/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

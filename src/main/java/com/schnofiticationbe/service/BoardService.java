@@ -4,9 +4,9 @@ import com.schnofiticationbe.Utils.StoreAttachment;
 import com.schnofiticationbe.dto.BoardDto;
 import com.schnofiticationbe.entity.Attachment;
 import com.schnofiticationbe.entity.Board;
+import com.schnofiticationbe.entity.BoardAttachment;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.repository.BoardRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,25 +31,23 @@ public class BoardService {
         Board board = new Board();
         board.setTitle(req.getTitle());
         board.setContent(req.getContent());
-        board.setCreatedAt(Timestamp.from(Instant.now()));
-
-        Board savedBoard = boardRepository.save(board);
 
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String fileUrl = storeAttachment.saveFile(file);
+                    String originalFilename = file.getOriginalFilename();
 
-                    Attachment attachment = new Attachment();
-                    attachment.setFileName(file.getOriginalFilename());
-                    attachment.setFileUrl(fileUrl);
+                    BoardAttachment attachment = new BoardAttachment(originalFilename, fileUrl);
 
-                    attachmentRepository.save(attachment);
+                    board.addAttachment(attachment);
                 }
             }
         }
 
+        Board savedBoard = boardRepository.save(board);
         return new BoardDto.Response(savedBoard);
+
     }
 
     public Page<BoardDto.Response> getAllBoards(Pageable pageable) {

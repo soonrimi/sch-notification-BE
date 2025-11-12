@@ -1,8 +1,6 @@
 package com.schnofiticationbe.dto;
 
-import com.schnofiticationbe.entity.Admin;
-import com.schnofiticationbe.entity.Attachment;
-import com.schnofiticationbe.entity.Notice;
+import com.schnofiticationbe.entity.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +16,7 @@ public class CrawlPostDto {
         private String targetYear;
         private String targetDept;
         private Admin writer;
+        private NoticeType noticeType;
     }
 
     @Getter @Setter
@@ -30,32 +29,40 @@ public class CrawlPostDto {
 
     @Getter
     public static class AttachmentResponse {
+        private Long id;
         private String fileName;
         private String fileUrl;
 
-        public AttachmentResponse(Attachment attachment) {
-            this.fileName = attachment.getFileName();
-            this.fileUrl = attachment.getFileUrl();
+        public AttachmentResponse(CrawlAttachment crawlAttachment) {
+            this.id = crawlAttachment.getId();
+            this.fileName = crawlAttachment.getFileName();
+            this.fileUrl = crawlAttachment.getFileUrl();
         }
     }
 
     @Getter
-    public static class Response {
+    public static class CrawlPostsResponse {
         private Long id;
         private String title;
         private String content;
+        private String writer;
         private Timestamp createdAt;
-        private int viewCount;
+        private Category category;
+        private Integer viewCount;
+        private NoticeType noticeType;
         private List<AttachmentResponse> attachments;
 
-        public Response(Notice notice) {
-            this.id = notice.getId();
-            this.title = notice.getTitle();
-            this.content = notice.getContent();
-            //this.createdAt = notice.getCreatedAt();
-            this.viewCount = notice.getViewCount();
-            this.attachments = notice.getAttachments().stream()
-                .map(attachment -> new AttachmentResponse(attachment))
+        public CrawlPostsResponse(CrawlPosts crawlPosts) {
+            this.id = crawlPosts.getId();
+            this.title = crawlPosts.getTitle();
+            this.content = crawlPosts.getContent();
+            this.category = crawlPosts.getCategory();
+            this.writer = crawlPosts.getWriter();
+            this.createdAt = crawlPosts.getCreatedAt();
+            this.viewCount = crawlPosts.getViewCount();
+            this.noticeType = NoticeType.CRAWL;
+            this.attachments = crawlPosts.getCrawlAttachments().stream()
+                .map(crawlAttachment -> new AttachmentResponse(crawlAttachment))
                 .collect(Collectors.toList());
         }
     }

@@ -1,44 +1,47 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@DiscriminatorValue("InternalNotice")
+@Schema(requiredProperties = {"id", "title", "content", "createdAt", "view_count", "writer", "targetYear", "targetDept", "sentToKakao", "InternalAttachment"})
+@DiscriminatorValue("INTERNAL")
 public class InternalNotice extends Notice {
-    public enum TargetYear {
-        ALL_YEARS("전체"),
-        FIRST_YEAR("1학년"),
-        SECOND_YEAR("2학년"),
-        THIRD_YEAR("3학년"),
-        FOURTH_YEAR("4학년");
 
-        private final String description;
-
-        TargetYear(String description) {
-            this.description = description;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
 
     @ManyToOne
-    @JoinColumn(name = "writer", nullable = false)
+    @JoinColumn(name = "writer_id", nullable = false)
     private Admin writer; // 실제 작성자
 
     @Column(nullable = false)
     private TargetYear targetYear;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    private Department targetDept;
+    @ManyToMany()
+    @JoinTable(
+            name = "internal_notice_target_dept",
+            joinColumns = @JoinColumn(name = "internal_notice_id"),
+            inverseJoinColumns = @JoinColumn(name = "department_id")
+    )
+    private Set<Department> targetDept;
 
-    // InternalNotice만의 추가 필드가 있다면 여기에 작성
+    @Column(nullable = false, name = "sent_to_kakao")
+    private Boolean sentToKakao = false;
+
+    @OneToMany(mappedBy = "internalNotice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InternalAttachment> InternalAttachment = new ArrayList<>();
+
+    public void addAttachment(InternalAttachment attachment) {
+        this.InternalAttachment.add(attachment);
+        attachment.setInternalNotice(this);
+    }
 }

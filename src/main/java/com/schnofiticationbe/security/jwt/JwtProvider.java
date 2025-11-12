@@ -32,10 +32,10 @@ public class JwtProvider {
         }
     }
 
-    public String createToken(String userId, Admin.Role role) {
+    public String createToken(String userId, Admin.Affiliation affiliation) {
             return Jwts.builder()
                 .setSubject(userId)
-                .claim("role", role)
+                .claim("affiliation", affiliation)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1시간
                 .signWith(privateKey, SignatureAlgorithm.RS256)
