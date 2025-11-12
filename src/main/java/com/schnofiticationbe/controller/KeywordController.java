@@ -3,6 +3,8 @@ package com.schnofiticationbe.controller;
 import com.schnofiticationbe.dto.KeywordDto;
 import com.schnofiticationbe.entity.KeywordNotification;
 import com.schnofiticationbe.service.KeywordService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/keywords")
+@RequestMapping("/api/keyword")
 public class KeywordController {
 
     private final KeywordService keywordService;
@@ -36,21 +38,15 @@ public class KeywordController {
         return ResponseEntity.ok(list);
     }
 
-    // ★ device 기준 조회 추가 (요청된 변경 사항)
-    // 예: GET /keywords/device/{device_id}
-    @GetMapping("/device/{device}")
-    public ResponseEntity<List<KeywordDto.Response>> getByDevice(@PathVariable("device") String device) {
-        List<KeywordDto.Response> list = keywordService.getAllByDevice(device)
+    @GetMapping("/device/{device_id}")
+    @Operation(summary = "디바이스별 키워드 조회", description = "device_id를 기준으로 키워드 알림 목록을 조회합니다.")
+    public ResponseEntity<List<KeywordDto.Response>> getByDeviceId(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable("device_id") String deviceId) {
+        List<KeywordDto.Response> list = keywordService.getByDeviceId(deviceId)
                 .stream()
                 .map(KeywordDto.Response::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<KeywordDto.Response> getOne(@PathVariable int id) {
-        KeywordNotification k = keywordService.getOne(id);
-        return ResponseEntity.ok(new KeywordDto.Response(k));
     }
 
     @PutMapping("/{id}")
