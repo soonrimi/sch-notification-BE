@@ -53,4 +53,7 @@ public abstract class Notice{
         attachment.setNotice(null);
     }
 
+    public abstract String getWriterName();
+
+    public abstract NoticeType getNoticeTypeEnum();
 }

@@ -40,17 +40,8 @@ public class NoticeDto {
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
             this.content = notice.getContent();
-
-            if (notice instanceof InternalNotice internalNotice) {
-                this.writer = internalNotice.getWriter().getName();
-                this.noticeType = NoticeType.INTERNAL;
-            } else if (notice instanceof CrawlPosts crawlPosts) {
-                this.writer = crawlPosts.getWriter();
-                this.noticeType = NoticeType.CRAWL;
-            } else {
-                this.writer = "알 수 없음";
-                this.noticeType = null;
-            }
+            this.writer = notice.getWriterName();
+            this.noticeType = notice.getNoticeTypeEnum();
         }
     }
 
