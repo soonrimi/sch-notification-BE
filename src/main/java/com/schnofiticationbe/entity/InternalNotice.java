@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +16,8 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Schema(requiredProperties = {"writer_id", "targetYear", "targetDept", "sentToKakao", "InternalAttachment"})
 @DiscriminatorValue("INTERNAL")
+@Schema(requiredProperties = {"writer_id", "targetYear", "targetDept", "sentToKakao"})
 public class InternalNotice extends Notice {
 
 
@@ -37,11 +39,4 @@ public class InternalNotice extends Notice {
     @Column(nullable = false, name = "sent_to_kakao")
     private Boolean sentToKakao = false;
 
-    @OneToMany(mappedBy = "internalNotice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InternalAttachment> InternalAttachment = new ArrayList<>();
-
-    public void addAttachment(InternalAttachment attachment) {
-        this.InternalAttachment.add(attachment);
-        attachment.setInternalNotice(this);
-    }
 }
