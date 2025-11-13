@@ -26,6 +26,10 @@ public class KeywordService {
         return keywordRepository.findAll();
     }
 
+    public List<KeywordNotification> getAllByDevice(String device) {
+        return keywordRepository.findByDevice(device);
+    }
+
     public KeywordNotification getOne(int id) {
         return keywordRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("키워드 알림이 존재하지 않습니다. id=" + id));
