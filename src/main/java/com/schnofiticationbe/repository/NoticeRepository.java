@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
     @Query("SELECT n FROM Notice n ORDER BY n.createdAt DESC")
@@ -35,5 +36,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id = :departmentId AND n.targetYear = :targetYear ORDER BY n.createdAt DESC")
     Page<Notice> findInternalNoticesByDepartmentAndYearOrderByCreatedAt(Long targetDeptId, TargetYear targetYear,Pageable pageable);
+
 
 }

@@ -25,6 +25,10 @@ public class SubscribeService {
         return subscribeRepository.findAll();
     }
 
+    public List<Subscribe> getSubscribesByDevice(String device) {
+        return subscribeRepository.findByDevice(device);
+    }
+
     public Subscribe getSubscribe(int id) {
         return subscribeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));

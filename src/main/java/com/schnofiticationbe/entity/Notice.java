@@ -15,9 +15,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "notice_type", discriminatorType = DiscriminatorType.STRING)
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "notice")
+@DiscriminatorColumn(name = "notice_type", discriminatorType = DiscriminatorType.STRING)
 @Schema(requiredProperties = {"id", "title", "content", "createdAt", "viewCount", "category", "noticeType"})
 public abstract class Notice{
     @Id
@@ -40,4 +40,20 @@ public abstract class Notice{
     @Column(name = "category", nullable = false)
     private Category category;
 
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Attachment> attachments = new ArrayList<>();
+
+    public void addAttachment(Attachment attachment) {
+        attachments.add(attachment);
+        attachment.setNotice(this);
+    }
+
+    public void removeAttachment(Attachment attachment) {
+        attachments.remove(attachment);
+        attachment.setNotice(null);
+    }
+
+    public abstract String getWriterName();
+
+    public abstract NoticeType getNoticeTypeEnum();
 }

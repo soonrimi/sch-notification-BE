@@ -33,7 +33,6 @@ public class AdminService {
     private final JwtProvider jwtProvider;
     private final AdminRepository adminRepository;
     private final InternalNoticeRepository internalNoticeRepository;
-    private final InternalAttachmentRepository InternalAttachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
@@ -131,10 +130,9 @@ public class AdminService {
                 for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
                         String fileUrl = storeAttachment.saveFile(file);
-                        InternalAttachment attachment = new InternalAttachment();
+                        Attachment attachment = new Attachment();
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
-                        attachment.setInternalNotice(savedNotice);
                         savedNotice.addAttachment(attachment);
                         // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
 //                        InternalAttachmentRepository.save(attachment);

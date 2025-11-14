@@ -31,19 +31,6 @@ public class CrawlPostDto {
         private String targetDept;
     }
 
-    @Getter
-    @Schema(requiredProperties = {"id", "fileName", "fileUrl"})
-    public static class AttachmentResponse {
-        private Long id;
-        private String fileName;
-        private String fileUrl;
-
-        public AttachmentResponse(CrawlAttachment crawlAttachment) {
-            this.id = crawlAttachment.getId();
-            this.fileName = crawlAttachment.getFileName();
-            this.fileUrl = crawlAttachment.getFileUrl();
-        }
-    }
 
     @Getter
     @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "category", "viewCount", "noticeType", "attachments", "contentImages"})
@@ -56,7 +43,7 @@ public class CrawlPostDto {
         private Category category;
         private Integer viewCount;
         private NoticeType noticeType;
-        private List<AttachmentResponse> attachments;
+        private List<NoticeDto.AttachmentResponse> attachments;
         private List<String> contentImages;
 
         public CrawlPostsResponse(CrawlPosts crawlPosts) {
@@ -68,9 +55,9 @@ public class CrawlPostDto {
             this.createdAt = crawlPosts.getCreatedAt();
             this.viewCount = crawlPosts.getViewCount();
             this.noticeType = NoticeType.CRAWL;
-            this.attachments = crawlPosts.getCrawlAttachments().stream()
-                .map(crawlAttachment -> new AttachmentResponse(crawlAttachment))
-                .collect(Collectors.toList());
+            this.attachments = crawlPosts.getAttachments().stream()
+                    .map(NoticeDto.AttachmentResponse::new)
+                    .collect(Collectors.toList());
             List<String> images = crawlPosts.getContentImages();
             if (images != null) {
                 this.contentImages = new ArrayList<>(images);
