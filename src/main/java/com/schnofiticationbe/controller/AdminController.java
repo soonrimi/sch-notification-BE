@@ -77,7 +77,7 @@ public class AdminController {
 
                     if (timeLeft < 0) {
                         clearInterval(timer);
-                        window.location.href = '/login';
+                        window.location.href = 'https://notification.iubns.net/admin/login/';
                     }
                 }, 1000);
             </script>
