@@ -3,6 +3,8 @@ package com.schnofiticationbe.controller;
 import com.schnofiticationbe.dto.KeywordDto;
 import com.schnofiticationbe.entity.KeywordNotification;
 import com.schnofiticationbe.service.KeywordService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/keywords")
+@RequestMapping("/api/keyword")
 public class KeywordController {
 
     private final KeywordService keywordService;
@@ -36,10 +38,15 @@ public class KeywordController {
         return ResponseEntity.ok(list);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<KeywordDto.Response> getOne(@PathVariable int id) {
-        KeywordNotification k = keywordService.getOne(id);
-        return ResponseEntity.ok(new KeywordDto.Response(k));
+    @GetMapping("/device/{device_id}")
+    @Operation(summary = "디바이스별 키워드 조회", description = "device_id를 기준으로 키워드 알림 목록을 조회합니다.")
+    public ResponseEntity<List<KeywordDto.Response>> getByDeviceId(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable("device_id") String deviceId) {
+        List<KeywordDto.Response> list = keywordService.getByDeviceId(deviceId)
+                .stream()
+                .map(KeywordDto.Response::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 
     @PutMapping("/{id}")
@@ -62,7 +69,7 @@ public class KeywordController {
         return ResponseEntity.noContent().build();
     }
 
-    // 부분적으로 포함/제외 키워드만 패치하고 싶을 때 (예시)
+
     @PatchMapping("/{id}/include")
     public ResponseEntity<KeywordDto.Response> patchInclude(
             @PathVariable int id,
