@@ -16,10 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,13 +33,11 @@ public class AdminService {
     private final JwtProvider jwtProvider;
     private final AdminRepository adminRepository;
     private final InternalNoticeRepository internalNoticeRepository;
-    private final InternalAttachmentRepository InternalAttachmentRepository;
     private final StoreAttachment storeAttachment;
     private final PasswordEncoder passwordEncoder;
     private final DepartmentRepository departmentRepository;
     private final EmailService emailService;
     private final JavaMailSender mailSender;
-    private final Map<String, String> emailVerificationTokens = new ConcurrentHashMap<>();
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
@@ -45,6 +45,9 @@ public class AdminService {
 
     @Value("${spring.mail.username}")
     private String mailUsername;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @Data
     @AllArgsConstructor
@@ -59,6 +62,11 @@ public class AdminService {
 
         if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
+        }
+
+        // 이메일 인증 여부 확인
+        if (!admin.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다. 이메일 인증을 먼저 해주세요.");
         }
 
         int otp = (int) (Math.random() * 900000) + 100000;
@@ -96,9 +104,9 @@ public class AdminService {
 
 
     // 공지 생성 (InternalNotice)
-    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(String jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
-        String userId = jwtProvider.getUserId(jwtToken);
-        Admin admin = adminRepository.findByUserId(userId)
+    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(Authentication jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
+        String userIdInToken=jwtToken.getName();
+        Admin admin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
 
         Set<Department> departments = new HashSet<>(departmentRepository.findAllById(req.getTargetDepartmentIds()));
@@ -122,14 +130,15 @@ public class AdminService {
                 for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
                         String fileUrl = storeAttachment.saveFile(file);
-                        InternalAttachment attachment = new InternalAttachment();
+                        Attachment attachment = new Attachment();
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
-                        attachment.setInternalNotice(savedNotice);
+                        savedNotice.addAttachment(attachment);
                         // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
-                        InternalAttachmentRepository.save(attachment);
+//                        InternalAttachmentRepository.save(attachment);
                     }
                 }
+                savedNotice = internalNoticeRepository.save(savedNotice);
             }
             return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
 
@@ -146,29 +155,32 @@ public class AdminService {
         }
     }
 
-    public void sendVerificationMail(String email) {
-        String token = UUID.randomUUID().toString();
-        emailService.saveToken(email, token);
+    private String buildVerifyLink(String email, String token) {
+        return baseUrl + "/api/admin/verify?userId=" + email + "&token=" + token;
+    }
 
-//        String link = "http://notification.iubns.net/api/admin/verify?userId=" + email + "&token=" + token;
-        String link = "http://localhost:7100/api/admin/verify?userId=" + email + "&token=" + token;
+
+    public void sendVerificationMail(String email, String token) {
+        String link = buildVerifyLink(email, token);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setTo(email);
             helper.setSubject("[순천향대학교 Soonrimi] 이메일 인증");
-
             helper.setFrom(mailUsername);
 
-            String htmlContent = "<a href=\"" + link + "\">이메일 인증</a>"
-                    + "<p> 위 버튼을 누른 뒤 다시 회원가입 폼으로 돌아가 나머지를 작성해주세요.</p>";
+            String htmlContent =
+                    "<h1>순천향대학교 Soonrimi</h1>"
+                            + "<p>총학생회에서 당신의 계정으로 회원가입을 완료했습니다.</p>"
+                            + "<p>본인 인증을 위해 아래 링크로 이메일 인증을 해 주세요.</p>"
+                            + "<a href=\"" + link + "\">이메일 인증</a>"
+                            + "<p>이 링크는 최초 1회만 사용됩니다.</p>"
+                            + "<p>인증 완료 후 로그인이 되지 않으면 총학생회로 문의해주십시오.</p>"
+                            + "<p>앞으로 로그인 시 이 이메일로 6자리 OTP가 발송됩니다.</p>"
+                            + "<p>순리미에 오신 걸 환영합니다!</p>";
 
             helper.setText(htmlContent, true);
-
             mailSender.send(message);
-
-
         } catch (MessagingException e) {
             throw new RuntimeException("메일 발송 실패", e);
         }
@@ -183,46 +195,24 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 환경변수와 일치하지 않습니다.");
         }
 
-        if (!emailService.isVerified(req.getUserId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다.");
-        }
-
         Admin admin = new Admin();
         admin.setUserId(req.getUserId());
         admin.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         admin.setName(req.getName());
         admin.setAffiliation(req.getAffiliation());
-        admin.setEmailVerified(true);
-        admin.setEmailVerificationToken(null);
+        admin.setEmailVerified(false);
+        String token = UUID.randomUUID().toString();
+        admin.setEmailVerificationToken(token);
 
         List<Department> departments = departmentRepository.findAllById(req.getDepartmentIds());
         admin.setDepartments(new HashSet<>(departments));
 
         Admin saved = adminRepository.save(admin);
+        sendVerificationMail(saved.getUserId(), token);
 
         emailService.removeToken(req.getUserId());
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
-    }
-
-    public AdminDto.LoginResponse login(AdminDto.LoginRequest req) {
-        Admin admin = adminRepository.findByUserId(req.getUserId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다."));
-
-
-        if (!passwordEncoder.matches(req.getPassword(), admin.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 잘못되었습니다.");
-        }
-
-        // JWT 토큰 생성 (JwtProvider 사용)
-        String token = jwtProvider.createToken(admin.getUserId(), admin.getAffiliation());
-
-        return new AdminDto.LoginResponse(
-            admin.getUserId(),
-            admin.getName(),
-            "로그인 성공",
-            token
-        );
     }
 
     public AdminDto.MessageResponse resetPassword(AdminDto.ResetPasswordRequest req) {
@@ -236,6 +226,40 @@ public class AdminService {
         // 임시 비밀번호 반환
         return new AdminDto.MessageResponse("비밀번호가 수정 되었습니다.");
     }
+
+
+    @Transactional
+    public void resendVerificationMail(String userId) {
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        if (admin.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 이메일 인증이 완료되었습니다.");
+        }
+
+        String token = admin.getEmailVerificationToken();
+        if (token == null || token.isBlank()) {
+            token = UUID.randomUUID().toString();
+            admin.setEmailVerificationToken(token);
+            // @Transactional 때문에 flush는 자동; 확실히 하려면 adminRepository.save(admin);
+        }
+
+        sendVerificationMail(admin.getUserId(), token);
+    }
+
+    @Transactional
+    public void verifyEmail(String userId, String token) {
+        Admin admin = adminRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+
+        if (admin.getEmailVerificationToken() == null || !admin.getEmailVerificationToken().equals(token)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 링크입니다.");
+        }
+
+        admin.setEmailVerified(true);
+        admin.setEmailVerificationToken(null); // 재사용 불가
+    }
+
 
 //    public void updatePassword(String userId, String rawPassword) {
 //        Admin admin = adminRepository.findByUsername(userId)
@@ -256,9 +280,9 @@ public class AdminService {
         adminRepository.save(admin);
     }
 
-    public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(String jwtToken) {
-        String userId = jwtProvider.getUserId(jwtToken);
-        Admin getCurrentAdmin = adminRepository.findByUserId(userId)
+    public List<InternalNoticeDto.InternalNoticeListResponse> getMyInternalNotice(Authentication jwtToken) {
+        String userIdInToken=jwtToken.getName();
+        Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);

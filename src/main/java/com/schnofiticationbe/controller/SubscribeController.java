@@ -18,16 +18,21 @@ public class SubscribeController {
     private final SubscribeService subscribeService;
 
     @PostMapping
-    public ResponseEntity<SubscribeDto.Response> create(@RequestBody SubscribeDto.CreateRequest request) {
-        Subscribe subscribe = subscribeService.createSubscribe(request.getCategory(), request.getDevice());
-        return ResponseEntity.ok(new SubscribeDto.Response(subscribe));
+    public ResponseEntity<SubscribeDto.SubscribeResponse> create(
+            @RequestBody SubscribeDto.SubscribeCreateRequest request) {
+
+        Subscribe subscribe = subscribeService.createSubscribe(
+                request.getCategory(),
+                request.getDevice()
+        );
+        return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(subscribe));
     }
 
     @GetMapping
-    public ResponseEntity<List<SubscribeDto.Response>> getAll() {
-        List<SubscribeDto.Response> list = subscribeService.getAllSubscribes()
+    public ResponseEntity<List<SubscribeDto.SubscribeResponse>> getAll() {
+        List<SubscribeDto.SubscribeResponse> list = subscribeService.getAllSubscribes()
                 .stream()
-                .map(SubscribeDto.Response::new)
+                .map(SubscribeDto.SubscribeResponse::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
@@ -44,18 +49,22 @@ public class SubscribeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SubscribeDto.Response> getOne(@PathVariable int id) {
+    public ResponseEntity<SubscribeDto.SubscribeResponse> getOne(@PathVariable int id) {
         Subscribe subscribe = subscribeService.getSubscribe(id);
-        return ResponseEntity.ok(new SubscribeDto.Response(subscribe));
+        return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(subscribe));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SubscribeDto.Response> update(
+    public ResponseEntity<SubscribeDto.SubscribeResponse> update(
             @PathVariable int id,
-            @RequestBody SubscribeDto.UpdateRequest request) {
+            @RequestBody SubscribeDto.SubscribeUpdateRequest request) {
 
-        Subscribe updated = subscribeService.updateSubscribe(id, request.getCategory(), request.getDevice());
-        return ResponseEntity.ok(new SubscribeDto.Response(updated));
+        Subscribe updated = subscribeService.updateSubscribe(
+                id,
+                request.getCategory(),
+                request.getDevice()
+        );
+        return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(updated));
     }
 
     @DeleteMapping("/{id}")
@@ -65,11 +74,11 @@ public class SubscribeController {
     }
 
     @PatchMapping("/{id}/category")
-    public ResponseEntity<SubscribeDto.Response> updateCategory(
+    public ResponseEntity<SubscribeDto.SubscribeResponse> updateCategory(
             @PathVariable int id,
             @RequestParam String category) {
 
         Subscribe updated = subscribeService.updateCategory(id, category);
-        return ResponseEntity.ok(new SubscribeDto.Response(updated));
+        return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(updated));
     }
 }

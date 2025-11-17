@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,6 +14,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Schema(requiredProperties = {"id", "logLevel", "traceId", "clientIp", "requestUri", "httpMethod",
+        "message", "requestParams", "requestBody", "requestVariables", "exceptionDetails",
+        "httpStatus", "durationMs", "createdAt"})
 public class Log {
 
     @Id
@@ -30,6 +34,7 @@ public class Log {
     private String requestUri;
     private String httpMethod;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String message;
 
     @Lob

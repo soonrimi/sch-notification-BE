@@ -13,6 +13,7 @@ public class KakaoRoomInfoDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(requiredProperties = {"departmentId", "targetYear", "roomName"})
     public static class CreateKakaoRoomInfoRequest {
         private Long departmentId;
         private TargetYear targetYear;

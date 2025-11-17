@@ -1,6 +1,7 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.exception.ErrorCode;
+import org.springframework.http.HttpStatus;
 
 public record ErrorResponse(String code, String message) {
     // 예외 발생 시 ErrorCode를 받아 json형태 정의
