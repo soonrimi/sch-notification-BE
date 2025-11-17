@@ -69,7 +69,7 @@ public class KeywordController {
         return ResponseEntity.noContent().build();
     }
 
-    // 선택: 부분 수정용 엔드포인트가 이미 있다면 그대로 유지 가능
+
     @PatchMapping("/{id}/include")
     public ResponseEntity<KeywordDto.Response> patchInclude(
             @PathVariable int id,
