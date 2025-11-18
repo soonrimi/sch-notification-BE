@@ -37,13 +37,13 @@ public class SubscribeController {
         return ResponseEntity.ok(list);
     }
 
-    // ★ device 기준으로 구독 목록 조회 (요청된 변경 사항)
-    // 예: GET /subscribe/device/{device_id}
+    // device 기준으로 구독 목록 조회
+    // 예: GET /subscribe/device/{device}
     @GetMapping("/device/{device}")
-    public ResponseEntity<List<SubscribeDto.Response>> getByDevice(@PathVariable("device") String device) {
-        List<SubscribeDto.Response> list = subscribeService.getSubscribesByDevice(device)
+    public ResponseEntity<List<SubscribeDto.SubscribeResponse>> getByDevice(@PathVariable("device") String device) {
+        List<SubscribeDto.SubscribeResponse> list = subscribeService.getSubscribesByDevice(device)
                 .stream()
-                .map(SubscribeDto.Response::new)
+                .map(SubscribeDto.SubscribeResponse::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
@@ -73,6 +73,7 @@ public class SubscribeController {
         return ResponseEntity.noContent().build();
     }
 
+    // 카테고리만 부분 수정
     @PatchMapping("/{id}/category")
     public ResponseEntity<SubscribeDto.SubscribeResponse> updateCategory(
             @PathVariable int id,
