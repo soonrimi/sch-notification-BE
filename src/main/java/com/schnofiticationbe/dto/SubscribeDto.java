@@ -1,7 +1,6 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Subscribe;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -10,14 +9,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Getter
-
 public class SubscribeDto {
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(requiredProperties = {"category", "device"})
-    public static class CreateRequest {
+    public static class SubscribeCreateRequest {
         private String category;
         private String device;
     }
@@ -25,21 +22,19 @@ public class SubscribeDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(requiredProperties = {"category", "device"})
-    public static class UpdateRequest {
+    public static class SubscribeUpdateRequest {  // ✅ 이름 컨트롤러랑 통일
         private String category;
         private String device;
     }
 
     @Data
-    @Schema(requiredProperties = {"id", "category", "device", "createdDate"})
-    public static class Response {
+    public static class SubscribeResponse {
         private int id;
         private String category;
         private String device;
         private LocalDateTime createdDate;
 
-        public Response(Subscribe subscribe) {
+        public SubscribeResponse(Subscribe subscribe) {  // ✅ 생성자 이름 수정
             this.id = subscribe.getId();
             this.category = subscribe.getCategory();
             this.device = subscribe.getDevice();
