@@ -1,6 +1,7 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
+import com.schnofiticationbe.dto.DeptYearBundle;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.*;
 import com.schnofiticationbe.repository.AttachmentRepository;
@@ -9,6 +10,7 @@ import com.schnofiticationbe.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,13 +85,21 @@ public class NoticeService {
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 
-    public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(Long departmentId, Pageable pageable) {
+    public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(List<Long> departmentId, Pageable pageable) {
         Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentOrderByCreatedAt(departmentId, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 
-    public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(Long departmentId, TargetYear targetYear, Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentAndYearOrderByCreatedAt(departmentId, targetYear, pageable);
+    public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(List<DeptYearBundle> bundles, Pageable pageable) {
+        Specification<Notice>spec=(root, query, criteriaBuilder) -> {
+            var predicate=criteriaBuilder.disjunction();
+            for (DeptYearBundle bundle : bundles) {
+                var deptPredicate=criteriaBuilder.equal(root.get("department"), bundle.getDepartmentId());
+                var yearPredicate=criteriaBuilder.equal(root.get("targetYear"), bundle.getTargetYear());
+                predicate = criteriaBuilder.or(predicate, criteriaBuilder.and(deptPredicate, yearPredicate));            }
+            return predicate;
+        };
+        Page<Notice> postsPage = noticeRepository.findAll(spec, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 }
