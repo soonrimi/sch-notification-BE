@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/keyword")
+@RequestMapping("/keyword")
 public class KeywordController {
 
     private final KeywordService keywordService;
