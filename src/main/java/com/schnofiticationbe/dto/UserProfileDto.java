@@ -15,6 +15,7 @@ public class UserProfileDto {
     public static class CreateRequest {
         private String department;
         private Integer grade;
+        // JSON 필드 이름: deviceId
         private String deviceId;
     }
 
@@ -39,7 +40,8 @@ public class UserProfileDto {
             this.id = p.getId();
             this.department = p.getDepartment();
             this.grade = p.getGrade();
-            this.deviceId = p.getDevice();   // 엔티티의 device 필드와 매핑
+            // 엔티티 필드 device → 응답 필드 deviceId 로 매핑
+            this.deviceId = p.getDevice();
             this.createdDate = p.getCreatedDate();
         }
     }
