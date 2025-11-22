@@ -22,9 +22,9 @@ public class KeywordController {
     @PostMapping
     public ResponseEntity<KeywordDto.Response> create(@RequestBody KeywordDto.CreateRequest request) {
         KeywordNotification created = keywordService.createKeywords(
-                request.getIncludeKeywords(),
-                request.getExcludeKeywords(),
-                request.getDevice()
+                request.getInclude(),
+                request.getExclude(),
+                request.getDeviceId()
         );
         return ResponseEntity.ok(new KeywordDto.Response(created));
     }
@@ -38,10 +38,10 @@ public class KeywordController {
         return ResponseEntity.ok(list);
     }
 
-    @GetMapping("/device/{device_id}")
-    @Operation(summary = "디바이스별 키워드 조회", description = "device_id를 기준으로 키워드 알림 목록을 조회합니다.")
+    @GetMapping("/device/{deviceId}")
+    @Operation(summary = "디바이스별 키워드 조회", description = "deviceId를 기준으로 키워드 알림 목록을 조회합니다.")
     public ResponseEntity<List<KeywordDto.Response>> getByDeviceId(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable("device_id") String deviceId) {
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable("deviceId") String deviceId) {
         List<KeywordDto.Response> list = keywordService.getByDeviceId(deviceId)
                 .stream()
                 .map(KeywordDto.Response::new)
@@ -56,9 +56,9 @@ public class KeywordController {
 
         KeywordNotification updated = keywordService.update(
                 id,
-                request.getIncludeKeywords(),
-                request.getExcludeKeywords(),
-                request.getDevice()
+                request.getInclude(),
+                request.getExclude(),
+                request.getDeviceId()
         );
         return ResponseEntity.ok(new KeywordDto.Response(updated));
     }
@@ -69,22 +69,22 @@ public class KeywordController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PatchMapping("/{id}/include")
     public ResponseEntity<KeywordDto.Response> patchInclude(
             @PathVariable int id,
-            @RequestBody List<String> includeKeywords) {
+            @RequestBody List<String> include) {
 
-        KeywordNotification k = keywordService.update(id, includeKeywords, null, null);
+        KeywordNotification k = keywordService.update(id, include, null, null);
         return ResponseEntity.ok(new KeywordDto.Response(k));
     }
 
     @PatchMapping("/{id}/exclude")
     public ResponseEntity<KeywordDto.Response> patchExclude(
             @PathVariable int id,
-            @RequestBody List<String> excludeKeywords) {
+            @RequestBody List<String> exclude) {
 
-        KeywordNotification k = keywordService.update(id, null, excludeKeywords, null);
+        KeywordNotification k = keywordService.update(id, null, exclude, null);
         return ResponseEntity.ok(new KeywordDto.Response(k));
     }
 }
+

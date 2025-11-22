@@ -15,7 +15,7 @@ public class UserProfileDto {
     public static class CreateRequest {
         private String department;
         private Integer grade;
-        private String device;
+        private String deviceId;
     }
 
     @Data
@@ -24,7 +24,7 @@ public class UserProfileDto {
     public static class UpdateRequest {
         private String department;
         private Integer grade;
-        private String device;
+        private String deviceId;
     }
 
     @Data
@@ -32,14 +32,14 @@ public class UserProfileDto {
         private Integer id;
         private String department;
         private Integer grade;
-        private String device;
+        private String deviceId;
         private LocalDateTime createdDate;
 
         public Response(UserProfile p) {
             this.id = p.getId();
             this.department = p.getDepartment();
             this.grade = p.getGrade();
-            this.device = p.getDevice();
+            this.deviceId = p.getDevice();   // 엔티티의 device 필드와 매핑
             this.createdDate = p.getCreatedDate();
         }
     }

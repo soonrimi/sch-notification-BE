@@ -23,7 +23,8 @@ public class SubscribeController {
 
         Subscribe subscribe = subscribeService.createSubscribe(
                 request.getCategory(),
-                request.getDevice()
+                request.getDeviceId(),
+                request.getSubscribed()
         );
         return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(subscribe));
     }
@@ -37,11 +38,10 @@ public class SubscribeController {
         return ResponseEntity.ok(list);
     }
 
-    // device 기준으로 구독 목록 조회
-    // 예: GET /subscribe/device/{device}
-    @GetMapping("/device/{device}")
-    public ResponseEntity<List<SubscribeDto.SubscribeResponse>> getByDevice(@PathVariable("device") String device) {
-        List<SubscribeDto.SubscribeResponse> list = subscribeService.getSubscribesByDevice(device)
+    // deviceId 기준 조회
+    @GetMapping("/device/{deviceId}")
+    public ResponseEntity<List<SubscribeDto.SubscribeResponse>> getByDevice(@PathVariable("deviceId") String deviceId) {
+        List<SubscribeDto.SubscribeResponse> list = subscribeService.getSubscribesByDevice(deviceId)
                 .stream()
                 .map(SubscribeDto.SubscribeResponse::new)
                 .collect(Collectors.toList());
@@ -62,7 +62,8 @@ public class SubscribeController {
         Subscribe updated = subscribeService.updateSubscribe(
                 id,
                 request.getCategory(),
-                request.getDevice()
+                request.getDeviceId(),
+                request.getSubscribed()
         );
         return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(updated));
     }
@@ -73,13 +74,22 @@ public class SubscribeController {
         return ResponseEntity.noContent().build();
     }
 
-    // 카테고리만 부분 수정
     @PatchMapping("/{id}/category")
     public ResponseEntity<SubscribeDto.SubscribeResponse> updateCategory(
             @PathVariable int id,
             @RequestParam String category) {
 
         Subscribe updated = subscribeService.updateCategory(id, category);
+        return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(updated));
+    }
+
+    // subscribed만 토글/수정하고 싶을 때 쓰는 API (선택)
+    @PatchMapping("/{id}/subscribed")
+    public ResponseEntity<SubscribeDto.SubscribeResponse> updateSubscribed(
+            @PathVariable int id,
+            @RequestParam boolean subscribed) {
+
+        Subscribe updated = subscribeService.updateSubscribed(id, subscribed);
         return ResponseEntity.ok(new SubscribeDto.SubscribeResponse(updated));
     }
 }
