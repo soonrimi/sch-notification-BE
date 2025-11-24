@@ -87,4 +87,3 @@ public class KeywordController {
         return ResponseEntity.ok(new KeywordDto.Response(k));
     }
 }
-

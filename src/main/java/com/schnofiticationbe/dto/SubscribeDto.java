@@ -16,28 +16,34 @@ public class SubscribeDto {
     @AllArgsConstructor
     public static class SubscribeCreateRequest {
         private String category;
-        private String device;
+        // FE 요구사항: deviceId 라는 이름으로 받기
+        private String deviceId;
+        // 선택적으로 보낼 수 있게
+        private Boolean subscribed;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class SubscribeUpdateRequest {  // ✅ 이름 컨트롤러랑 통일
+    public static class SubscribeUpdateRequest {
         private String category;
-        private String device;
+        private String deviceId;
+        private Boolean subscribed;
     }
 
     @Data
     public static class SubscribeResponse {
         private int id;
         private String category;
-        private String device;
+        private String deviceId;   // FE 기준 이름
+        private boolean subscribed;
         private LocalDateTime createdDate;
 
-        public SubscribeResponse(Subscribe subscribe) {  // ✅ 생성자 이름 수정
+        public SubscribeResponse(Subscribe subscribe) {
             this.id = subscribe.getId();
             this.category = subscribe.getCategory();
-            this.device = subscribe.getDevice();
+            this.deviceId = subscribe.getDevice();  // 엔티티의 device와 매핑
+            this.subscribed = subscribe.isSubscribed();
             this.createdDate = subscribe.getCreatedDate();
         }
     }
