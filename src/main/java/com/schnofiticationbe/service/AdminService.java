@@ -135,6 +135,7 @@ public class AdminService {
                         Attachment attachment = new Attachment();
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
+                        attachment.setAttachmentType(NoticeType.INTERNAL);
                         savedNotice.addAttachment(attachment);
                         // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
 //                        InternalAttachmentRepository.save(attachment);
