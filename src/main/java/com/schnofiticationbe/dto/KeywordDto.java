@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class KeywordDto {
@@ -30,18 +29,15 @@ public class KeywordDto {
 
     @Data
     public static class Response {
-        private Integer id;
+        // keyword response 에서는 deviceId, include, exclude 만 응답으로 보냄
         private List<String> include;
         private List<String> exclude;
         private String deviceId;
-        private LocalDateTime createdDate;
 
         public Response(KeywordNotification k) {
-            this.id = k.getId();
             this.include = k.getIncludeKeywords();
             this.exclude = k.getExcludeKeywords();
             this.deviceId = k.getDevice();
-            this.createdDate = k.getCreatedDate();
         }
     }
 }

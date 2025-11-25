@@ -37,14 +37,16 @@ public class SubscribeDto {
         private String category;
         private String deviceId;   // FE 기준 이름
         private boolean subscribed;
-        private LocalDateTime createdDate;
+        private LocalDateTime createdAt; // createdDate → createdAt 으로 변경
 
         public SubscribeResponse(Subscribe subscribe) {
             this.id = subscribe.getId();
             this.category = subscribe.getCategory();
-            this.deviceId = subscribe.getDevice();  // 엔티티의 device와 매핑
+            // 엔티티의 device 필드를 응답의 deviceId 로 매핑
+            this.deviceId = subscribe.getDevice();
             this.subscribed = subscribe.isSubscribed();
-            this.createdDate = subscribe.getCreatedDate();
+            // 엔티티의 createdDate → 응답 필드 createdAt
+            this.createdAt = subscribe.getCreatedDate();
         }
     }
 }
