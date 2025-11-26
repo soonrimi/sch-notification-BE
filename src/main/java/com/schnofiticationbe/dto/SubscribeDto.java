@@ -1,7 +1,6 @@
 package com.schnofiticationbe.dto;
 
 import com.schnofiticationbe.entity.Subscribe;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -10,40 +9,44 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Getter
-
 public class SubscribeDto {
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(requiredProperties = {"category", "device"})
-    public static class CreateRequest {
+    public static class SubscribeCreateRequest {
         private String category;
-        private String device;
+        // FE 요구사항: deviceId 라는 이름으로 받기
+        private String deviceId;
+        // 선택적으로 보낼 수 있게
+        private Boolean subscribed;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(requiredProperties = {"category", "device"})
-    public static class UpdateRequest {
+    public static class SubscribeUpdateRequest {
         private String category;
-        private String device;
+        private String deviceId;
+        private Boolean subscribed;
     }
 
     @Data
-    @Schema(requiredProperties = {"id", "category", "device", "createdDate"})
-    public static class Response {
+    public static class SubscribeResponse {
         private int id;
         private String category;
-        private String device;
-        private LocalDateTime createdDate;
+        private String deviceId;   // FE 기준 이름
+        private boolean subscribed;
+        private LocalDateTime createdAt; // createdDate → createdAt 으로 변경
 
-        public Response(Subscribe subscribe) {
+        public SubscribeResponse(Subscribe subscribe) {
             this.id = subscribe.getId();
             this.category = subscribe.getCategory();
-            this.device = subscribe.getDevice();
-            this.createdDate = subscribe.getCreatedDate();
+            // 엔티티의 device 필드를 응답의 deviceId 로 매핑
+            this.deviceId = subscribe.getDevice();
+            this.subscribed = subscribe.isSubscribed();
+            // 엔티티의 createdDate → 응답 필드 createdAt
+            this.createdAt = subscribe.getCreatedDate();
         }
     }
 }
