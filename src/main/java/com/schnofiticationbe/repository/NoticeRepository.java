@@ -32,8 +32,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long>, JpaSpecif
             "ORDER BY n.createdAt DESC")
     Page<Notice> findByIdAndTitleContainingOrContentContainingOrderByCreatedAtDescCustom(List<Long> ids,String searchKeyword,Pageable pageable);
 
-    @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id = :targetDeptId ORDER BY n.createdAt DESC")
-    Page<Notice> findInternalNoticesByDepartmentOrderByCreatedAt(List<Long> targetDeptId, Pageable pageable);
+    @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id IN :targetDeptIds ORDER BY n.createdAt DESC")
+    Page<Notice> findInternalNoticesByDepartmentOrderByCreatedAt(@Param("targetDeptIds") List<Long> targetDeptIds, Pageable pageable);
 
     @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id = :departmentId AND n.targetYear = :targetYear ORDER BY n.createdAt DESC")
     Page<Notice> findInternalNoticesByDepartmentAndYearOrderByCreatedAt(Long targetDeptId, TargetYear targetYear,Pageable pageable);

@@ -7,6 +7,9 @@ import com.schnofiticationbe.entity.*;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.repository.InternalNoticeRepository;
 import com.schnofiticationbe.repository.NoticeRepository;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -91,15 +94,18 @@ public class NoticeService {
     }
 
     public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(List<DeptYearBundle> bundles, Pageable pageable) {
-        Specification<Notice>spec=(root, query, criteriaBuilder) -> {
-            var predicate=criteriaBuilder.disjunction();
+        Specification<InternalNotice> spec = (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            Predicate mainPredicate = criteriaBuilder.disjunction();
             for (DeptYearBundle bundle : bundles) {
-                var deptPredicate=criteriaBuilder.equal(root.get("department"), bundle.getDepartmentId());
-                var yearPredicate=criteriaBuilder.equal(root.get("targetYear"), bundle.getTargetYear());
-                predicate = criteriaBuilder.or(predicate, criteriaBuilder.and(deptPredicate, yearPredicate));            }
-            return predicate;
+                Join<InternalNotice, Department> deptJoin = root.join("targetDept", JoinType.INNER);
+                Predicate deptPredicate = criteriaBuilder.equal(deptJoin.get("id"), bundle.getDepartmentId());
+                Predicate yearPredicate = criteriaBuilder.equal(root.get("targetYear"), bundle.getTargetYear());
+                mainPredicate = criteriaBuilder.or(mainPredicate, criteriaBuilder.and(deptPredicate, yearPredicate));
+            }
+            return mainPredicate;
         };
-        Page<Notice> postsPage = noticeRepository.findAll(spec, pageable);
+        Page<InternalNotice> postsPage = internalNoticeRepository.findAll(spec, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 }
