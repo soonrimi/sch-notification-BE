@@ -8,13 +8,14 @@ import com.schnofiticationbe.entity.TargetYear;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface NoticeRepository extends JpaRepository<Notice, Long> {
+public interface NoticeRepository extends JpaRepository<Notice, Long>, JpaSpecificationExecutor<Notice> {
     @Query("SELECT n FROM Notice n ORDER BY n.createdAt DESC")
     Page<Notice> findCombinedNoticesOrderByCreatedAtDesc(Pageable pageable);
     Page<Notice> findByCategoryOrderByCreatedAtDesc(Category category, Pageable pageable);
@@ -31,8 +32,8 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
             "ORDER BY n.createdAt DESC")
     Page<Notice> findByIdAndTitleContainingOrContentContainingOrderByCreatedAtDescCustom(List<Long> ids,String searchKeyword,Pageable pageable);
 
-    @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id = :targetDeptId ORDER BY n.createdAt DESC")
-    Page<Notice> findInternalNoticesByDepartmentOrderByCreatedAt(Long targetDeptId, Pageable pageable);
+    @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id IN :targetDeptIds ORDER BY n.createdAt DESC")
+    Page<Notice> findInternalNoticesByDepartmentOrderByCreatedAt(@Param("targetDeptIds") List<Long> targetDeptIds, Pageable pageable);
 
     @Query("SELECT n FROM InternalNotice n JOIN n.targetDept d WHERE d.id = :departmentId AND n.targetYear = :targetYear ORDER BY n.createdAt DESC")
     Page<Notice> findInternalNoticesByDepartmentAndYearOrderByCreatedAt(Long targetDeptId, TargetYear targetYear,Pageable pageable);

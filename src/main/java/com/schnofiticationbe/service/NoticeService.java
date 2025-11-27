@@ -1,14 +1,19 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.dto.CrawlPostDto;
+import com.schnofiticationbe.dto.DeptYearBundle;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.*;
 import com.schnofiticationbe.repository.AttachmentRepository;
 import com.schnofiticationbe.repository.InternalNoticeRepository;
 import com.schnofiticationbe.repository.NoticeRepository;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,13 +88,24 @@ public class NoticeService {
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 
-    public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(Long departmentId, Pageable pageable) {
+    public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(List<Long> departmentId, Pageable pageable) {
         Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentOrderByCreatedAt(departmentId, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 
-    public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(Long departmentId, TargetYear targetYear, Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentAndYearOrderByCreatedAt(departmentId, targetYear, pageable);
+    public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(List<DeptYearBundle> bundles, Pageable pageable) {
+        Specification<InternalNotice> spec = (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            Predicate mainPredicate = criteriaBuilder.disjunction();
+            for (DeptYearBundle bundle : bundles) {
+                Join<InternalNotice, Department> deptJoin = root.join("targetDept", JoinType.INNER);
+                Predicate deptPredicate = criteriaBuilder.equal(deptJoin.get("id"), bundle.getDepartmentId());
+                Predicate yearPredicate = criteriaBuilder.equal(root.get("targetYear"), bundle.getTargetYear());
+                mainPredicate = criteriaBuilder.or(mainPredicate, criteriaBuilder.and(deptPredicate, yearPredicate));
+            }
+            return mainPredicate;
+        };
+        Page<InternalNotice> postsPage = internalNoticeRepository.findAll(spec, pageable);
         return postsPage.map(NoticeDto.ListResponse::new);
     }
 }

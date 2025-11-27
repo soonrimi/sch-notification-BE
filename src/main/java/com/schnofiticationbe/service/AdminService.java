@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -133,9 +135,8 @@ public class AdminService {
                         Attachment attachment = new Attachment();
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
+                        attachment.setAttachmentType(NoticeType.INTERNAL);
                         savedNotice.addAttachment(attachment);
-                        // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
-//                        InternalAttachmentRepository.save(attachment);
                     }
                 }
                 savedNotice = internalNoticeRepository.save(savedNotice);
@@ -143,14 +144,6 @@ public class AdminService {
             return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
 
         } catch (Exception e) {
-            // !!!!! 오류 발생 시, 저장하려던 notice 객체의 상태를 강제로 출력합니다 !!!!!
-            System.out.println("==================== SAVE FAILED: DATA DUMP ====================");
-            System.out.println("Title: " + notice.getTitle());
-            System.out.println("Content: " + notice.getContent());
-            System.out.println("Category: " + notice.getCategory());
-            System.out.println("================================================================");
-
-            // 원래 발생한 예외를 다시 던져서 기존 흐름을 방해하지 않습니다.
             throw e;
         }
     }
