@@ -1,5 +1,6 @@
 package com.schnofiticationbe.controller;
 
+import com.schnofiticationbe.dto.DeptYearBundle;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.dto.SearchRequestDto;
 import com.schnofiticationbe.entity.Category;
@@ -71,19 +72,23 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
     }
 
-    //학과 및 학년별 공지사항 조회 (및 전체 조회)
-    @GetMapping("/initialized")
-    public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNotices(
-            @RequestParam (required = false, name = "departmentId")Long departmentId,
-            @RequestParam (required = false, name = "targetYear")TargetYear targetYear,
+    //학과별 공지사항 조회(및 전체 학과 조회)
+    @PostMapping("/department")
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNoticesByDepartment(
+            @RequestBody List<Long> departmentIds,
             Pageable pageable) {
-        Page<NoticeDto.ListResponse> postsPage;
-        if (targetYear == null) {
-            postsPage=noticeService.getAllNoticeByDepartment(departmentId, pageable);
-        }else {
-            postsPage=noticeService.getNoticesByDepartmentAndTargetYear(departmentId, targetYear, pageable);
-        }
+        Page<NoticeDto.ListResponse> postsPage = noticeService.getAllNoticeByDepartment(departmentIds, pageable);
         return ResponseEntity.ok(postsPage);
     }
+
+    //학과 및 학년별 공지사항 조회 (및 전체 조회)
+    @PostMapping("/departmentYear")
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNoticesByDepartmentAndYear(
+            @RequestBody List<DeptYearBundle> deptYearBundles,
+            Pageable pageable) {
+        Page<NoticeDto.ListResponse> postsPage = noticeService.getNoticesByDepartmentAndTargetYear(deptYearBundles, pageable);
+        return ResponseEntity.ok(postsPage);
+    }
+
 
 }
