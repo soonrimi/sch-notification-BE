@@ -32,6 +32,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/api/subscribe/**").permitAll()
                         .requestMatchers("/api/kakao/**").permitAll()
+                        .requestMatchers("/api/keyword/**").permitAll()
+                        .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
