@@ -1,59 +1,110 @@
 package com.schnofiticationbe.service;
 
+import com.schnofiticationbe.dto.NotificationDto;
 import com.schnofiticationbe.entity.KeywordNotification;
-import com.schnofiticationbe.entity.UserProfile;
+import com.schnofiticationbe.entity.Subscribe;
+import com.schnofiticationbe.repository.KeywordRepository;
+import com.schnofiticationbe.repository.SubscribeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final KeywordService keywordService;
-    private final UserProfileService userProfileService;
+    private final SubscribeRepository subscribeRepository;
+    private final KeywordRepository keywordRepository;
 
-    /**
-     * 공지 내용(content)을 입력받아서, 키워드와 사용자 정보를 기준으로 알림 대상 필터링 예시
-     */
-    public void sendNotificationToEligibleUsers(String content, String targetDept, Integer targetGrade) {
-        List<UserProfile> allUsers = userProfileService.getAll();
-        List<KeywordNotification> allKeywords = keywordService.getAll();
+    public NotificationDto.SendSummary processNewPost(NotificationDto.NewPostRequest request) {
 
-        for (UserProfile user : allUsers) {
-            // 학과 필터
-            if (targetDept != null && !user.getDepartment().equalsIgnoreCase(targetDept)) {
-                continue;
+        String searchText = buildSearchText(request.getTitle(), request.getContent());
+
+        // 1. 카테고리 구독 매칭
+        List<Subscribe> categorySubscribes = Collections.emptyList();
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            categorySubscribes = subscribeRepository.findByCategoryAndSubscribedTrue(request.getCategory());
+        }
+
+        // 2. 키워드 구독 매칭
+        List<KeywordNotification> keywordNotifications = keywordRepository.findAll();
+
+        Set<String> targetDevices = new HashSet<>();
+
+        // 2-1. 카테고리 구독으로 매칭된 디바이스에 알림
+        for (Subscribe subscribe : categorySubscribes) {
+            String device = subscribe.getDevice();
+            if (device != null && !device.isBlank()) {
+                targetDevices.add(device);
+                sendToDevice(device, request.getTitle(), request.getUrl());
             }
+        }
 
-            // 학년 필터
-            if (targetGrade != null && !user.getGrade().equals(targetGrade)) {
-                continue;
-            }
-
-            // 사용자별 키워드 매칭
-            for (KeywordNotification keyword : allKeywords) {
-                if (isKeywordMatch(content, keyword)) {
-                    // 실제 FCM 발송 등 로직 작성 가능
-                    System.out.println("알림 전송 대상: " + user.getDepartment() + " " + user.getGrade() + "학년");
+        // 2-2. 키워드 구독으로 매칭된 디바이스에 알림
+        int keywordMatchCount = 0;
+        for (KeywordNotification keywordNotification : keywordNotifications) {
+            if (isMatchByKeyword(keywordNotification, searchText)) {
+                String device = keywordNotification.getDevice();
+                if (device != null && !device.isBlank()) {
+                    targetDevices.add(device);
+                    keywordMatchCount++;
+                    sendToDevice(device, request.getTitle(), request.getUrl());
                 }
             }
         }
+
+        NotificationDto.SendSummary summary = new NotificationDto.SendSummary();
+        summary.setCategoryMatchCount(categorySubscribes.size());
+        summary.setKeywordMatchCount(keywordMatchCount);
+        summary.setTotalDeviceCount(targetDevices.size());
+        summary.setTargetDevices(targetDevices);
+
+        return summary;
     }
 
-    private boolean isKeywordMatch(String content, KeywordNotification k) {
-        // 제외 키워드 포함되어 있으면 false
-        for (String exclude : k.getExcludeKeywords()) {
-            if (content.contains(exclude)) return false;
+    private String buildSearchText(String title, String content) {
+        StringBuilder sb = new StringBuilder();
+        if (title != null) {
+            sb.append(title).append(" ");
+        }
+        if (content != null) {
+            sb.append(content);
+        }
+        return sb.toString();
+    }
+
+    private boolean isMatchByKeyword(KeywordNotification keywordNotification, String text) {
+        String lowered = text.toLowerCase(Locale.ROOT);
+
+        List<String> includes = keywordNotification.getIncludeKeywords();
+        if (includes != null && !includes.isEmpty()) {
+            boolean anyIncluded = includes.stream()
+                    .filter(Objects::nonNull)
+                    .map(s -> s.toLowerCase(Locale.ROOT))
+                    .anyMatch(lowered::contains);
+            if (!anyIncluded) {
+                return false;
+            }
         }
 
-        // 포함 키워드 중 하나라도 포함되어 있으면 true
-        if (k.getIncludeKeywords() == null || k.getIncludeKeywords().isEmpty()) return false;
-        for (String include : k.getIncludeKeywords()) {
-            if (content.contains(include)) return true;
+        List<String> excludes = keywordNotification.getExcludeKeywords();
+        if (excludes != null && !excludes.isEmpty()) {
+            boolean anyExcluded = excludes.stream()
+                    .filter(Objects::nonNull)
+                    .map(s -> s.toLowerCase(Locale.ROOT))
+                    .anyMatch(lowered::contains);
+            if (anyExcluded) {
+                return false;
+            }
         }
 
-        return false;
+        return true;
+    }
+
+    private void sendToDevice(String deviceId, String title, String url) {
+        // TODO: 실제 푸시 발송(Firebase Cloud Messaging 등)으로 교체하면 됨
+        System.out.println("[NOTIFY] device=" + deviceId + " title=" + title + " url=" + url);
     }
 }
