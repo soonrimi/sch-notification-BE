@@ -4,51 +4,55 @@ import com.schnofiticationbe.config.LogContextHolder;
 import com.schnofiticationbe.dto.ErrorResponse;
 import com.schnofiticationbe.entity.Log;
 import com.schnofiticationbe.entity.LogLevel;
+import com.schnofiticationbe.service.DiscordService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.UUID;
 
-/**
- * @file GlobalExceptionHandler.java
- * @brief 애플리케이션 전역에서 발생하는 모든 예외를 붙잡아 처리하는 중앙 처리소 (응급실 역할).
- * @details 예외의 종류에 따라 적절한 HTTP 상태 코드와 에러 메시지를 생성하여 클라이언트에게 반환합니다.
- * 또한, '로그 기록지' (LogContextHolder)에 현재 예외 상태(WARN, ERROR)를 기록하여
- * LoggingInterceptor가 최종 로그를 남길 수 있도록 돕습니다.
- */
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
     private final LogContextHolder logContextHolder;
+    private final DiscordService discordService;
 
     /**
-     * ResponseStatusException은 서비스/컨트롤러에서 명시적으로 상태를 지정해 던지는 예외입니다.
-     * 해당 예외는 원래 가진 HTTP 상태와 메시지를 그대로 클라이언트에 전달해야 합니다.
+     * ResponseStatusException 처리
+     * 400번대(클라이언트 실수)는 경고만, 500번대(서버 실수)는 알림 발송
      */
     @ExceptionHandler(ResponseStatusException.class)
     protected ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e, HttpServletRequest request) {
         log.warn("ResponseStatusException caught: {} {}", e.getStatusCode(), e.getReason());
 
+        boolean isServerError = e.getStatusCode().is5xxServerError();
+
+        String traceId = UUID.randomUUID().toString().substring(0, 8);
+
         Log.LogBuilder logBuilder = logContextHolder.get();
         if (logBuilder != null) {
-            logBuilder.logLevel(LogLevel.WARN)
+            logBuilder.logLevel(isServerError ? LogLevel.ERROR : LogLevel.WARN)
                     .message(e.getReason())
                     .httpStatus(e.getStatusCode().value())
+                    .traceId(traceId)
                     .exceptionDetails(getStackTraceAsString(e));
         }
 
-        // HttpStatusCode -> HttpStatus 변환 (표준 상태가 아닐 수 있으므로 안전하게 처리)
+        if (isServerError) {
+            sendDiscordAlert("🚨 ResponseStatusException (5xx)", e, request, traceId);
+        }
+
         HttpStatus resolvedStatus = HttpStatus.resolve(e.getStatusCode().value());
         if (resolvedStatus == null) {
             resolvedStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -58,15 +62,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 예측된 비즈니스 예외 (예: 로그인 실패, 잘못된 입력값)를 처리합니다. (내과 의사 역할)
-     * 이 예외들은 서버의 잘못이 아니므로 'WARN' 레벨로 처리합니다.
+     * 비즈니스 예외 (CustomBusinessException)
      */
     @ExceptionHandler(CustomBusinessException.class)
     protected ResponseEntity<ErrorResponse> handleCustomBusinessException(CustomBusinessException e, HttpServletRequest request) {
         log.warn("CustomBusinessException caught: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
 
-        // '로그 기록지'의 상태를 'WARN'으로 업데이트합니다.
         Log.LogBuilder logBuilder = logContextHolder.get();
         if (logBuilder != null) {
             logBuilder.logLevel(LogLevel.WARN)
@@ -74,17 +76,16 @@ public class GlobalExceptionHandler {
                     .exceptionDetails(getStackTraceAsString(e));
         }
 
-        // ErrorCode에 정의된 정확한 상태 코드(400, 401, 404 등)로 응답합니다.
         return new ResponseEntity<>(ErrorResponse.of(errorCode), errorCode.getStatus());
     }
 
     /**
-     * 잘못된 URL 요청(404 Not Found)을 처리합니다.
+     * 404 Not Found (NoResourceFoundException)
      */
     @ExceptionHandler(NoResourceFoundException.class)
     protected ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException e, HttpServletRequest request) {
         log.warn("NoResourceFoundException caught: {}", e.getMessage());
-        ErrorCode errorCode = ErrorCode.BOARD_NOT_FOUND; // ErrorCode에 NOT_FOUND(404)를 정의해야 합니다.
+        ErrorCode errorCode = ErrorCode.BOARD_NOT_FOUND;
 
         Log.LogBuilder logBuilder = logContextHolder.get();
         if (logBuilder != null) {
@@ -97,28 +98,59 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 위에서 처리되지 않은 모든 예측하지 못한 예외 (예: NullPointerException, DB 오류 등)를 처리합니다. (외과 의사 역할)
-     * 이 예외들은 서버의 심각한 문제이므로 'ERROR' 레벨로 처리합니다.
+     * 예상치 못한 모든 예외 (Exception)
      */
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {
         log.error("Unhandled Exception caught: {}", e.getMessage(), e);
 
-        // '로그 기록지'의 상태를 'ERROR'로 업데이트합니다.
+        String traceId = UUID.randomUUID().toString().substring(0, 8);
+
         Log.LogBuilder logBuilder = logContextHolder.get();
         if (logBuilder != null) {
             logBuilder.logLevel(LogLevel.ERROR)
                     .message(e.getMessage())
+                    .traceId(traceId) // DB 저장용
                     .exceptionDetails(getStackTraceAsString(e));
         }
 
-        // 예측하지 못한 모든 에러는 500 (내부 서버 오류)으로 응답합니다.
+        sendDiscordAlert("🔥 Unhandled Exception (500)", e, request, traceId);
+
         return new ResponseEntity<>(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR), ErrorCode.INTERNAL_SERVER_ERROR.getStatus());
     }
 
-    /**
-     * 예외 객체의 전체 스택 트레이스를 문자열로 변환합니다.
-     */
+    private void sendDiscordAlert(String title, Exception e, HttpServletRequest request, String traceId) {
+        String stackTrace = getStackTraceAsString(e);
+
+        if (stackTrace != null && stackTrace.length() > 2000) {
+            stackTrace = stackTrace.substring(0, 2000) + "...(truncated)";
+        }
+
+        discordService.sendErrorAlert(
+                title,
+                (e.getMessage() != null ? e.getMessage() : "No Error Message")
+                        + "\n```java\n" + stackTrace + "\n```",
+                request.getRequestURI(),
+                traceId
+        );
+    }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
+        log.warn("HttpRequestMethodNotSupportedException caught: {}", e.getMessage());
+
+        Log.LogBuilder logBuilder = logContextHolder.get();
+        if (logBuilder != null) {
+            logBuilder.logLevel(LogLevel.WARN)
+                    .message(e.getMessage())
+                    .httpStatus(HttpStatus.METHOD_NOT_ALLOWED.value());
+        }
+
+        return new ResponseEntity<>(
+                ErrorResponse.of(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메서드입니다."),
+                HttpStatus.METHOD_NOT_ALLOWED
+        );
+    }
+
     private String getStackTraceAsString(Throwable throwable) {
         if (throwable == null) return null;
         StringWriter sw = new StringWriter();

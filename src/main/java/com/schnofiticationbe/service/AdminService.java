@@ -41,6 +41,7 @@ public class AdminService {
     private final EmailService emailService;
     private final JavaMailSender mailSender;
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
+    private final DiscordService discordService;
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
     private String adminRegisterPassword;
@@ -205,6 +206,12 @@ public class AdminService {
 
         emailService.removeToken(req.getUserId());
 
+        discordService.sendJoinAlert(
+                saved.getUserId(),
+                saved.getAffiliation().toString(),
+                "신규 가입 요청"
+        );
+
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
     }
 
@@ -277,7 +284,7 @@ public class AdminService {
         String userIdInToken=jwtToken.getName();
         Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
-
+        System.out.println("현재 관리자: " + getCurrentAdmin.getUserId());
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
         return notices.stream().map(InternalNoticeDto.InternalNoticeListResponse::new).toList();
     }
@@ -355,6 +362,7 @@ public class AdminService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
+        discordService.sendInfoAlert("관리자 삭제됨", "삭제된 ID: " + admin.getUserId());
         adminRepository.delete(admin);
         return new AdminDto.MessageResponse("관리자 계정이 삭제되었습니다.");
     }
