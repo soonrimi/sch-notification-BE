@@ -73,7 +73,7 @@ public class CrawlPostController {
     }
 
     //학과별 공지사항 조회(및 전체 학과 조회)
-    @PostMapping("/department")
+    @PostMapping("/initialized/department")
     public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNoticesByDepartment(
             @RequestBody List<Long> departmentIds,
             Pageable pageable) {
@@ -82,7 +82,7 @@ public class CrawlPostController {
     }
 
     //학과 및 학년별 공지사항 조회 (및 전체 조회)
-    @PostMapping("/departmentYear")
+    @PostMapping("/initialized/departmentyear")
     public ResponseEntity<Page<NoticeDto.ListResponse>> getInitializedNoticesByDepartmentAndYear(
             @RequestBody List<DeptYearBundle> deptYearBundles,
             Pageable pageable) {
