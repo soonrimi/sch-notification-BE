@@ -55,6 +55,8 @@ jobs:
             APP_BASE_URL=${{ secrets.APP_BASE_URL_DEV }}
 
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
+            DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+
             EOF
 
       - name: Deploy on server
