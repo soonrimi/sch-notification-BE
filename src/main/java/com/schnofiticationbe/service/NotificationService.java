@@ -1,6 +1,8 @@
 package com.schnofiticationbe.service;
 
+import com.schnofiticationbe.Utils.KeywordMatcher;
 import com.schnofiticationbe.entity.KeywordNotification;
+import com.schnofiticationbe.entity.Subscribe;
 import com.schnofiticationbe.entity.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,47 +15,75 @@ public class NotificationService {
 
     private final KeywordService keywordService;
     private final UserProfileService userProfileService;
+    private final SubscribeService subscribeService;
+    private final FcmService fcmService;
 
-    /**
-     * 공지 내용(content)을 입력받아서, 키워드와 사용자 정보를 기준으로 알림 대상 필터링 예시
-     */
     public void sendNotificationToEligibleUsers(String content, String targetDept, Integer targetGrade) {
         List<UserProfile> allUsers = userProfileService.getAll();
         List<KeywordNotification> allKeywords = keywordService.getAll();
 
         for (UserProfile user : allUsers) {
-            // 학과 필터
             if (targetDept != null && !user.getDepartment().equalsIgnoreCase(targetDept)) {
                 continue;
             }
 
-            // 학년 필터
             if (targetGrade != null && !user.getGrade().equals(targetGrade)) {
                 continue;
             }
 
-            // 사용자별 키워드 매칭
             for (KeywordNotification keyword : allKeywords) {
                 if (isKeywordMatch(content, keyword)) {
-                    // 실제 FCM 발송 등 로직 작성 가능
                     System.out.println("알림 전송 대상: " + user.getDepartment() + " " + user.getGrade() + "학년");
                 }
             }
         }
     }
 
+    public void sendKeywordNotification(String content, String title) {
+        List<UserProfile> allUsers = userProfileService.getAll();
+
+        for (UserProfile user : allUsers) {
+            String device = user.getDevice();
+            if (device == null || device.isBlank()) {
+                continue;
+            }
+
+            List<Subscribe> subscribes = subscribeService.getSubscribesByDevice(device);
+            boolean isSubscribed = subscribes.stream()
+                    .anyMatch(Subscribe::isSubscribed);
+
+            if (!isSubscribed) {
+                continue;
+            }
+
+            List<KeywordNotification> userKeywords = keywordService.getByDeviceId(device);
+
+            for (KeywordNotification keyword : userKeywords) {
+                if (isKeywordMatch(content, keyword)) {
+                    String notificationTitle = title != null ? title : "키워드 알림";
+                    String notificationBody = content.length() > 100 
+                            ? content.substring(0, 100) + "..." 
+                            : content;
+                    fcmService.sendPushNotification(device, notificationTitle, notificationBody);
+                    break;
+                }
+            }
+        }
+    }
+
     private boolean isKeywordMatch(String content, KeywordNotification k) {
-        // 제외 키워드 포함되어 있으면 false
-        for (String exclude : k.getExcludeKeywords()) {
-            if (content.contains(exclude)) return false;
+        if (content == null || content.isBlank()) {
+            return false;
         }
 
-        // 포함 키워드 중 하나라도 포함되어 있으면 true
-        if (k.getIncludeKeywords() == null || k.getIncludeKeywords().isEmpty()) return false;
-        for (String include : k.getIncludeKeywords()) {
-            if (content.contains(include)) return true;
+        if (!KeywordMatcher.containsNoneKeyword(content, k.getExcludeKeywords())) {
+            return false;
         }
 
-        return false;
+        if (k.getIncludeKeywords() == null || k.getIncludeKeywords().isEmpty()) {
+            return false;
+        }
+
+        return KeywordMatcher.containsAnyKeyword(content, k.getIncludeKeywords());
     }
 }
