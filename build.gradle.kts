@@ -43,6 +43,7 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("io.github.cdimascio:java-dotenv:5.2.2")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13") // Swagger UI 추가
+    implementation("com.google.firebase:firebase-admin:9.2.0") // Firebase Admin SDK
 }
 
 tasks.withType<Test> {

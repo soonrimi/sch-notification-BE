@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +16,7 @@ public class NotificationService {
 
     private final SubscribeRepository subscribeRepository;
     private final KeywordRepository keywordRepository;
+    private final FcmService fcmService;
 
     public NotificationDto.SendSummary processNewPost(NotificationDto.NewPostRequest request) {
 
@@ -104,7 +104,12 @@ public class NotificationService {
     }
 
     private void sendToDevice(String deviceId, String title, String url) {
-        // TODO: 실제 푸시 발송(Firebase Cloud Messaging 등)으로 교체하면 됨
-        System.out.println("[NOTIFY] device=" + deviceId + " title=" + title + " url=" + url);
+        // FCM을 사용하여 푸시 알림 전송
+        // 알림 본문은 제목을 사용하거나, URL이 있으면 "새 공지사항이 있습니다" 메시지 사용
+        String body = url != null && !url.isBlank() 
+            ? "새 공지사항이 있습니다. 자세히 보기" 
+            : "새 공지사항이 있습니다.";
+        
+        fcmService.sendPushNotification(deviceId, title, body, url);
     }
 }
