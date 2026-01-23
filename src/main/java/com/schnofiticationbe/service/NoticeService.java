@@ -1,7 +1,6 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.Utils.PageUtils;
-import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.dto.DeptYearBundle;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.*;
@@ -12,19 +11,14 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -130,5 +124,15 @@ public class NoticeService {
         };
         Page<Notice> postsPage = noticeRepository.findAll(spec, PageUtils.toLatestOrder(pageable));
         return postsPage.map(NoticeDto.ListResponse::new);
+    }
+
+    public List<Category> getCategoriesExcept(List<Category> exclusions) {
+        if (exclusions == null || exclusions.isEmpty()) {
+            return Arrays.asList(Category.values());
+        }
+
+        return Arrays.stream(Category.values())
+                .filter(category -> !exclusions.contains(category))
+                .collect(Collectors.toList());
     }
 }

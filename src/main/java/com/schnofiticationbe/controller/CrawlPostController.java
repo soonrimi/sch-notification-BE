@@ -90,5 +90,13 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
     }
 
+    @GetMapping("/categories/initialized")
+    public ResponseEntity<List<Category>> getCategories(
+            @RequestParam(required = false) List<Category> exclude
+    ) {
+        List<Category> categories = noticeService.getCategoriesExcept(exclude);
+        return ResponseEntity.ok(categories);
+    }
+
 
 }
