@@ -24,8 +24,10 @@ public class CrawlPostController {
 
 
     @GetMapping
-    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(@ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(noticeService.getCombinedNotices(pageable));
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(
+            @RequestBody List<DeptYearBundle> deptYearBundles,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getCombinedNotices(deptYearBundles, pageable));
     }
 
     @GetMapping("/{id}")
