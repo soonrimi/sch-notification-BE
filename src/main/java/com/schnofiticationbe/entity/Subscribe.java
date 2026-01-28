@@ -22,9 +22,8 @@ public class Subscribe {
     private String category;
 
     @Column(nullable = false)
-    private String device; // 실제 DB 컬럼은 그대로 'device'
-
-    // ✅ FE에서 필요로 하는 subscribed 플래그
+    private String device; 
+    
     @Column(nullable = false)
     private boolean subscribed = true;
 
