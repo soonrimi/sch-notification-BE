@@ -1,7 +1,6 @@
 package com.schnofiticationbe.service;
 
 import com.schnofiticationbe.Utils.PageUtils;
-import com.schnofiticationbe.dto.CrawlPostDto;
 import com.schnofiticationbe.dto.DeptYearBundle;
 import com.schnofiticationbe.dto.NoticeDto;
 import com.schnofiticationbe.entity.*;
@@ -12,19 +11,14 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,9 +32,56 @@ public class NoticeService {
 
 
     @Transactional
-    public Page<NoticeDto.ListResponse> getCombinedNotices(Pageable pageable) {
-        Page<Notice> noticePage = noticeRepository.findCombinedNoticesOrderByCreatedAtDesc(PageUtils.toLatestOrder(pageable));
-    return noticePage.map(NoticeDto.ListResponse::new);
+    public Page<NoticeDto.ListResponse> getCombinedNotices(List<DeptYearBundle> bundles, Pageable pageable) {
+
+        List<Long> requestedDeptIds = bundles.stream()
+                .map(DeptYearBundle::getDepartmentId)
+                .toList();
+
+        Map<Long, String> deptIdToNameMap = departmentRepository.findAllById(requestedDeptIds).stream()
+                .collect(Collectors.toMap(Department::getId, Department::getName));
+        List<String> targetDeptNames = new ArrayList<>(deptIdToNameMap.values());
+        Specification<Notice> spec = (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+
+            Root<InternalNotice> internalRoot = criteriaBuilder.treat(root, InternalNotice.class);
+            Root<CrawlPosts> crawlRoot = criteriaBuilder.treat(root, CrawlPosts.class);
+            Join<InternalNotice, Department> deptJoin = internalRoot.join("targetDept", JoinType.LEFT);
+
+            List<Category> generalCategories = List.of(
+                    Category.UNIVERSITY, Category.RECRUIT, Category.ACTIVITY, Category.PROMOTION
+            );
+            List<Category> targetedCategories = List.of(
+                    Category.DEPARTMENT, Category.GRADE
+            );
+
+            Predicate isGeneral = root.get("category").in(generalCategories);
+            Predicate isTargetCat = root.get("category").in(targetedCategories);
+
+            Predicate matchInternalRule = criteriaBuilder.disjunction();
+            for (DeptYearBundle bundle : bundles) {
+                Predicate deptEq = criteriaBuilder.equal(deptJoin.get("id"), bundle.getDepartmentId());
+                Predicate yearEq = criteriaBuilder.or(
+                        criteriaBuilder.equal(internalRoot.get("targetYear"), bundle.getTargetYear()),
+                        criteriaBuilder.equal(internalRoot.get("targetYear"), TargetYear.ALL_YEARS)
+                );
+                matchInternalRule = criteriaBuilder.or(matchInternalRule, criteriaBuilder.and(deptEq, yearEq));
+            }
+            Predicate matchCrawlRule = criteriaBuilder.disjunction();
+            if (!targetDeptNames.isEmpty()) {
+                matchCrawlRule = crawlRoot.get("source").in(targetDeptNames);
+            }
+
+            Predicate validTargeted = criteriaBuilder.and(
+                    isTargetCat,
+                    criteriaBuilder.or(matchInternalRule, matchCrawlRule)
+            );
+
+            return criteriaBuilder.or(isGeneral, validTargeted);
+        };
+
+        return noticeRepository.findAll(spec, PageUtils.toLatestOrder(pageable))
+                .map(NoticeDto.ListResponse::new);
     }
 
     public NoticeDto.DetailResponse getNotice(Long id) {
@@ -130,5 +171,15 @@ public class NoticeService {
         };
         Page<Notice> postsPage = noticeRepository.findAll(spec, PageUtils.toLatestOrder(pageable));
         return postsPage.map(NoticeDto.ListResponse::new);
+    }
+
+    public List<Category> getCategoriesExcept(List<Category> exclusions) {
+        if (exclusions == null || exclusions.isEmpty()) {
+            return Arrays.asList(Category.values());
+        }
+
+        return Arrays.stream(Category.values())
+                .filter(category -> !exclusions.contains(category))
+                .collect(Collectors.toList());
     }
 }

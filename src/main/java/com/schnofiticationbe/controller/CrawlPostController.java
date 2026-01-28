@@ -24,8 +24,10 @@ public class CrawlPostController {
 
 
     @GetMapping
-    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(@ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(noticeService.getCombinedNotices(pageable));
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(
+            @RequestBody List<DeptYearBundle> deptYearBundles,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getCombinedNotices(deptYearBundles, pageable));
     }
 
     @GetMapping("/{id}")
@@ -88,6 +90,14 @@ public class CrawlPostController {
             Pageable pageable) {
         Page<NoticeDto.ListResponse> postsPage = noticeService.getNoticesByDepartmentAndTargetYear(deptYearBundles, pageable);
         return ResponseEntity.ok(postsPage);
+    }
+
+    @GetMapping("/categories/initialized")
+    public ResponseEntity<List<Category>> getCategories(
+            @RequestParam(required = false) List<Category> exclude
+    ) {
+        List<Category> categories = noticeService.getCategoriesExcept(exclude);
+        return ResponseEntity.ok(categories);
     }
 
 
