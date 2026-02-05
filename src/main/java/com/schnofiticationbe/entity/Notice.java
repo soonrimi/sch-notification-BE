@@ -1,5 +1,6 @@
 package com.schnofiticationbe.entity;
 
+import com.schnofiticationbe.Utils.JsonStringListConverter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -43,6 +44,10 @@ public abstract class Notice{
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Attachment> attachments = new ArrayList<>();
 
+    @Convert(converter = JsonStringListConverter.class)
+    @Column(name = "content_images", columnDefinition = "LONGTEXT")
+    private List<String> contentImages = new ArrayList<>();
+
     public void addAttachment(Attachment attachment) {
         attachments.add(attachment);
         attachment.setNotice(this);
@@ -56,4 +61,5 @@ public abstract class Notice{
     public abstract String getWriterName();
 
     public abstract NoticeType getNoticeTypeEnum();
+
 }
