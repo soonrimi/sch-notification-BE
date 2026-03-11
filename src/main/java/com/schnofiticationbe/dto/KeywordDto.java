@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class KeywordDto {
@@ -14,34 +13,31 @@ public class KeywordDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateRequest {
-        private List<String> includeKeywords;
-        private List<String> excludeKeywords;
-        private String device;
+        private List<String> include;   // includeKeywords → include
+        private List<String> exclude;   // excludeKeywords → exclude
+        private String deviceId;        // device → deviceId
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UpdateRequest {
-        private List<String> includeKeywords;
-        private List<String> excludeKeywords;
-        private String device;
+        private List<String> include;
+        private List<String> exclude;
+        private String deviceId;
     }
 
     @Data
     public static class Response {
-        private Integer id;
-        private List<String> includeKeywords;
-        private List<String> excludeKeywords;
-        private String device;
-        private LocalDateTime createdDate;
+        // keyword response 에서는 deviceId, include, exclude 만 응답으로 보냄
+        private List<String> include;
+        private List<String> exclude;
+        private String deviceId;
 
         public Response(KeywordNotification k) {
-            this.id = k.getId();
-            this.includeKeywords = k.getIncludeKeywords();
-            this.excludeKeywords = k.getExcludeKeywords();
-            this.device = k.getDevice();
-            this.createdDate = k.getCreatedDate();
+            this.include = k.getIncludeKeywords();
+            this.exclude = k.getExcludeKeywords();
+            this.deviceId = k.getDevice();
         }
     }
 }

@@ -4,10 +4,10 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -31,32 +31,29 @@ public class EmailService {
         }
     }
 
-    public void sendOtp(String to, int otp) {
-        String subject = "[순천향대학교 Soonrimi] 로그인 OTP 코드";
-        String text = "OTP 코드는 " + otp + " 입니다. 5분 안에 입력해주시기 바랍니다.";
-        sendMail(to, subject, text);
+    @Async
+    public void sendOtp(String toEmail, int otp) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject("[Soonrimi] 로그인 OTP 코드");
+            helper.setText(
+                    "요청하신 OTP 코드는 다음과 같습니다.\n\n" +
+                            otp + "\n\n" +
+                            "5분 안에 입력해 주세요.",
+                    false
+            );
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private final Map<String, String> tokenStore = new ConcurrentHashMap<>();
-    private final Set<String> verifiedEmails = ConcurrentHashMap.newKeySet();
-
-    public void saveToken(String email, String token) {
-        tokenStore.put(email, token);
-    }
-
-    public boolean verifyToken(String email, String token) {
-        return token.equals(tokenStore.get(email));
-    }
 
     public void removeToken(String email) {
         tokenStore.remove(email);
-    }
-
-    public void markVerified(String email) {
-        verifiedEmails.add(email);
-    }
-
-    public boolean isVerified(String email) {
-        return verifiedEmails.contains(email);
     }
 }

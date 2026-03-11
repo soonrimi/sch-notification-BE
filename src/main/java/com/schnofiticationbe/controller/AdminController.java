@@ -38,10 +38,65 @@ public class AdminController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verify(@RequestParam String userId, @RequestParam String token) {
+    public ResponseEntity<String> verify(@RequestParam String userId, @RequestParam String token) {
         adminService.verifyEmail(userId, token);
-        return ResponseEntity.ok("인증 완료");
+
+        String html = """
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+            <meta charset="UTF-8">
+            <title>인증 완료</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif;
+                    text-align: center; 
+                    margin-top: 120px;
+                }
+                .box {
+                    display: inline-block;
+                    padding: 30px 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    background: #ffffff;
+                }
+                h2 { color: #2e7dff; }
+                #countdown {
+                    font-size: 24px;
+                    margin-top: 10px;
+                    color: #333;
+                    font-weight: bold;
+                }
+            </style>
+            <script>
+                let timeLeft = 5;
+
+                const timer = setInterval(() => {
+                    document.getElementById("countdown").innerText = timeLeft;
+                    timeLeft--;
+
+                    if (timeLeft < 0) {
+                        clearInterval(timer);
+                        window.location.href = 'https://notification.iubns.net/admin/login/';
+                    }
+                }, 1000);
+            </script>
+        </head>
+        <body>
+            <div class="box">
+                <h2>이메일 인증 완료!</h2>
+                <p>곧 로그인 페이지로 이동합니다.</p>
+                <div id="countdown">5</div>
+            </div>
+        </body>
+        </html>
+        """;
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/html; charset=UTF-8")
+                .body(html);
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<String> loginEmail(@RequestBody AdminDto.EmailLoginRequest req) {

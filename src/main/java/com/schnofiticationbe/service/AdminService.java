@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +41,7 @@ public class AdminService {
     private final EmailService emailService;
     private final JavaMailSender mailSender;
     private final Map<String, OtpData> otpStore = new ConcurrentHashMap<>();
+    private final DiscordService discordService;
 
     @Value("${ADMIN_REGISTER_PASSWORD}")
     private String adminRegisterPassword;
@@ -133,9 +136,8 @@ public class AdminService {
                         Attachment attachment = new Attachment();
                         attachment.setFileName(file.getOriginalFilename());
                         attachment.setFileUrl(fileUrl);
+                        attachment.setAttachmentType(NoticeType.INTERNAL);
                         savedNotice.addAttachment(attachment);
-                        // savedNotice.getInternalAttachment().add(attachment); // 이 부분은 양방향 연관관계 편의 메서드에서 처리하는 것이 좋습니다.
-//                        InternalAttachmentRepository.save(attachment);
                     }
                 }
                 savedNotice = internalNoticeRepository.save(savedNotice);
@@ -143,14 +145,6 @@ public class AdminService {
             return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
 
         } catch (Exception e) {
-            // !!!!! 오류 발생 시, 저장하려던 notice 객체의 상태를 강제로 출력합니다 !!!!!
-            System.out.println("==================== SAVE FAILED: DATA DUMP ====================");
-            System.out.println("Title: " + notice.getTitle());
-            System.out.println("Content: " + notice.getContent());
-            System.out.println("Category: " + notice.getCategory());
-            System.out.println("================================================================");
-
-            // 원래 발생한 예외를 다시 던져서 기존 흐름을 방해하지 않습니다.
             throw e;
         }
     }
@@ -211,6 +205,12 @@ public class AdminService {
         sendVerificationMail(saved.getUserId(), token);
 
         emailService.removeToken(req.getUserId());
+
+        discordService.sendJoinAlert(
+                saved.getUserId(),
+                saved.getAffiliation().toString(),
+                "신규 가입 요청"
+        );
 
         return new AdminDto.SignupResponse(saved.getId(), saved.getUserId(), saved.getName(), saved.getAffiliation());
     }
@@ -284,7 +284,7 @@ public class AdminService {
         String userIdInToken=jwtToken.getName();
         Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
-
+        System.out.println("현재 관리자: " + getCurrentAdmin.getUserId());
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
         return notices.stream().map(InternalNoticeDto.InternalNoticeListResponse::new).toList();
     }
@@ -362,6 +362,7 @@ public class AdminService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
 
+        discordService.sendInfoAlert("관리자 삭제됨", "삭제된 ID: " + admin.getUserId());
         adminRepository.delete(admin);
         return new AdminDto.MessageResponse("관리자 계정이 삭제되었습니다.");
     }
