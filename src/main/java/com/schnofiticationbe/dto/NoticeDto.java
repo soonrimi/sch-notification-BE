@@ -5,6 +5,7 @@ import com.schnofiticationbe.entity.NoticeType;
 import com.schnofiticationbe.entity.TargetYear;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.sql.Timestamp;
@@ -63,14 +64,16 @@ public class NoticeDto {
         private final Set<Department> targetDept; // InternalNotice 전용
         private final List<AttachmentResponse> attachments;
         private final List<String> contentImages; // CrawlPosts 전용
+        private String ogImageUrl;
 
-        public DetailResponse(Notice notice) {
+        public DetailResponse(Notice notice, String ogImageUrl) {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
+            this.ogImageUrl= ogImageUrl;
 
             this.attachments = notice.getAttachments().stream()
                     .map(AttachmentResponse::new)
@@ -118,6 +121,12 @@ public class NoticeDto {
             this.fileName = attachment.getFileName();
             this.fileUrl = attachment.getFileUrl();
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OgResponseDto {
+        private String ogImageUrl;
     }
 
 }

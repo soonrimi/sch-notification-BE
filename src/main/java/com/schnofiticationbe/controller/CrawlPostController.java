@@ -10,12 +10,16 @@ import com.schnofiticationbe.service.NoticeService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 @RestController
 @RequestMapping("/notice")
 @RequiredArgsConstructor
@@ -24,8 +28,10 @@ public class CrawlPostController {
 
 
     @GetMapping
-    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(@ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(noticeService.getCombinedNotices(pageable));
+    public ResponseEntity<Page<NoticeDto.ListResponse>> getAllNotices(
+            @RequestBody List<DeptYearBundle> deptYearBundles,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getCombinedNotices(deptYearBundles, pageable));
     }
 
     @GetMapping("/{id}")
@@ -90,5 +96,49 @@ public class CrawlPostController {
         return ResponseEntity.ok(postsPage);
     }
 
+    @GetMapping("/categories/initialized")
+    public ResponseEntity<List<Category>> getCategories(
+            @RequestParam(required = false) List<Category> exclude
+    ) {
+        List<Category> categories = noticeService.getCategoriesExcept(exclude);
+        return ResponseEntity.ok(categories);
+    }
 
+    // OG 썸네일 이미지 조회
+    @GetMapping("/og-image/{id}")
+    public ResponseEntity<Resource> getThumbnail(
+            @PathVariable Long id,
+            @RequestParam("sig") String sig) {
+        System.out.println(">>> 컨트롤러 진입 성공! ID: " + id);
+
+        try {
+            Resource file = noticeService.getOgImageById(id, sig);
+
+            if (file == null) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_PNG)
+                        //todo: 기본 이미지 리소스 반환 (null-> 기본 이미지로 변경)
+                        .body(null);
+            }
+
+            String filename = file.getFilename() != null ? file.getFilename().toLowerCase() : "";
+            MediaType mediaType = MediaType.IMAGE_PNG; // 기본값
+            if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+                mediaType = MediaType.IMAGE_JPEG;
+            } else if (filename.endsWith(".gif")) {
+                mediaType = MediaType.IMAGE_GIF;
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                    .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
+                    .body(file);
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
