@@ -14,11 +14,11 @@ public class KeywordService {
 
     private final KeywordRepository keywordRepository;
 
-    public KeywordNotification createKeywords(List<String> includeKeywords, List<String> excludeKeywords, String device) {
+    public KeywordNotification createKeywords(List<String> include, List<String> exclude, String deviceId) {
         KeywordNotification k = new KeywordNotification();
-        if (includeKeywords != null) k.setIncludeKeywords(includeKeywords);
-        if (excludeKeywords != null) k.setExcludeKeywords(excludeKeywords);
-        k.setDevice(device);
+        if (include != null) k.setIncludeKeywords(include);
+        if (exclude != null) k.setExcludeKeywords(exclude);
+        k.setDevice(deviceId);
         return keywordRepository.save(k);
     }
 
@@ -31,18 +31,18 @@ public class KeywordService {
     }
 
     @Transactional
-    public KeywordNotification update(int id, List<String> includeKeywords, List<String> excludeKeywords, String device) {
+    public KeywordNotification update(int id, List<String> include, List<String> exclude, String deviceId) {
         KeywordNotification k = keywordRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("키워드 알림이 존재하지 않습니다. id=" + id));
 
-        if (includeKeywords != null) {
-            k.setIncludeKeywords(includeKeywords);
+        if (include != null) {
+            k.setIncludeKeywords(include);
         }
-        if (excludeKeywords != null) {
-            k.setExcludeKeywords(excludeKeywords);
+        if (exclude != null) {
+            k.setExcludeKeywords(exclude);
         }
-        if (device != null && !device.isBlank()) {
-            k.setDevice(device);
+        if (deviceId != null && !deviceId.isBlank()) {
+            k.setDevice(deviceId);
         }
         return k;
     }

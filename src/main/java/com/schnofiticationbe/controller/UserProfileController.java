@@ -22,7 +22,7 @@ public class UserProfileController {
         UserProfile created = userProfileService.createUserProfile(
                 request.getDepartment(),
                 request.getGrade(),
-                request.getDevice()
+                request.getDeviceId()
         );
         return ResponseEntity.ok(new UserProfileDto.Response(created));
     }
@@ -51,7 +51,7 @@ public class UserProfileController {
                 id,
                 request.getDepartment(),
                 request.getGrade(),
-                request.getDevice()
+                request.getDeviceId()
         );
         return ResponseEntity.ok(new UserProfileDto.Response(updated));
     }

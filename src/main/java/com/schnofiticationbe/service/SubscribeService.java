@@ -14,10 +14,12 @@ public class SubscribeService {
 
     private final SubscribeRepository subscribeRepository;
 
-    public Subscribe createSubscribe(String category, String device) {
+    public Subscribe createSubscribe(String category, String deviceId, Boolean subscribed) {
         Subscribe subscribe = new Subscribe();
         subscribe.setCategory(category);
-        subscribe.setDevice(device);
+        subscribe.setDevice(deviceId);
+        // null이면 기본값 true
+        subscribe.setSubscribed(subscribed == null ? true : subscribed);
         return subscribeRepository.save(subscribe);
     }
 
@@ -25,8 +27,8 @@ public class SubscribeService {
         return subscribeRepository.findAll();
     }
 
-    public List<Subscribe> getSubscribesByDevice(String device) {
-        return subscribeRepository.findByDevice(device);
+    public List<Subscribe> getSubscribesByDevice(String deviceId) {
+        return subscribeRepository.findByDevice(deviceId);
     }
 
     public Subscribe getSubscribe(int id) {
@@ -35,15 +37,18 @@ public class SubscribeService {
     }
 
     @Transactional
-    public Subscribe updateSubscribe(int id, String newCategory, String newDevice) {
+    public Subscribe updateSubscribe(int id, String newCategory, String newDeviceId, Boolean newSubscribed) {
         Subscribe subscribe = subscribeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
 
         if (newCategory != null && !newCategory.isBlank()) {
             subscribe.setCategory(newCategory);
         }
-        if (newDevice != null && !newDevice.isBlank()) {
-            subscribe.setDevice(newDevice);
+        if (newDeviceId != null && !newDeviceId.isBlank()) {
+            subscribe.setDevice(newDeviceId);
+        }
+        if (newSubscribed != null) {
+            subscribe.setSubscribed(newSubscribed);
         }
 
         return subscribe;
@@ -62,5 +67,14 @@ public class SubscribeService {
                 .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
         subscribe.setCategory(newCategory);
         return subscribe;
+    }
+
+    // ✅ subscribed만 따로 수정하는 메서드 (원하면 사용)
+    @Transactional
+    public Subscribe updateSubscribed(int id, boolean subscribed) {
+        Subscribe s = subscribeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("구독이 존재하지 않습니다. id=" + id));
+        s.setSubscribed(subscribed);
+        return s;
     }
 }

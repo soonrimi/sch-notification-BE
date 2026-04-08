@@ -14,11 +14,12 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
-    public UserProfile createUserProfile(String department, Integer grade, String device) {
+    public UserProfile createUserProfile(String department, Integer grade, String deviceId) {
         UserProfile p = new UserProfile();
         p.setDepartment(department);
         p.setGrade(grade);
-        p.setDevice(device);
+        // 엔티티 필드는 device지만, 서비스 파라미터는 deviceId
+        p.setDevice(deviceId);
         return userProfileRepository.save(p);
     }
 
@@ -32,13 +33,19 @@ public class UserProfileService {
     }
 
     @Transactional
-    public UserProfile update(int id, String department, Integer grade, String device) {
+    public UserProfile update(int id, String department, Integer grade, String deviceId) {
         UserProfile p = userProfileRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보가 존재하지 않습니다. id=" + id));
 
-        if (department != null && !department.isBlank()) p.setDepartment(department);
-        if (grade != null) p.setGrade(grade);
-        if (device != null && !device.isBlank()) p.setDevice(device);
+        if (department != null && !department.isBlank()) {
+            p.setDepartment(department);
+        }
+        if (grade != null) {
+            p.setGrade(grade);
+        }
+        if (deviceId != null && !deviceId.isBlank()) {
+            p.setDevice(deviceId);
+        }
 
         return p;
     }
