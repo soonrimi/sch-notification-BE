@@ -11,11 +11,15 @@ import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.context.annotation.Bean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.schnofiticationbe.config.interceptor.RateLimitInterceptor;
+// ... (other imports)
+
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
     private final LoggingInterceptor loggingInterceptor;
+    private final RateLimitInterceptor rateLimitInterceptor;
 
     @Bean
     public MultipartJackson2HttpMessageConverter multipartJackson2HttpMessageConverter(ObjectMapper objectMapper) {
@@ -43,6 +47,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry){
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/swagger-ui/**", "/v3/api-docs/**", "/error");
+                
         registry.addInterceptor(loggingInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/error");

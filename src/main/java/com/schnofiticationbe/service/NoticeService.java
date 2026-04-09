@@ -10,6 +10,11 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,6 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +40,12 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final DepartmentRepository departmentRepository;
     private final AttachmentRepository attachmentRepository;
+    private final String UPLOAD_ROOT = System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
+    @Value("${app.base-url}")
+    private String BASE_URL;
+
+    @Value("${image-key}")
+    private String SECRET_KEY;
 
 
     @Transactional
@@ -84,17 +101,19 @@ public class NoticeService {
                 .map(NoticeDto.ListResponse::new);
     }
 
+    @Transactional
     public NoticeDto.DetailResponse getNotice(Long id) {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."));
 
-        List<Attachment> attachments = attachmentRepository.findByNoticeId(id);
-        notice.setAttachments(attachments);
-
+        // 조회수 증가
         notice.setViewCount(notice.getViewCount() + 1);
         noticeRepository.save(notice);
 
-        return new NoticeDto.DetailResponse(notice);
+        // 보안 서명 생성 및 URL 조립
+        String sig = generateSignature(String.valueOf(id));
+        String ogImageUrl = BASE_URL + "/api/notice/og-image/" + id + "?sig=" + sig;
+        return new NoticeDto.DetailResponse(notice, ogImageUrl);
     }
 
 
@@ -181,5 +200,63 @@ public class NoticeService {
         return Arrays.stream(Category.values())
                 .filter(category -> !exclusions.contains(category))
                 .collect(Collectors.toList());
+    }
+
+    public Resource getOgImageById(Long id, String sig) {
+        String expectedSig = generateSignature(String.valueOf(id));
+        System.out.println("[DEBUG] 요청된 sig: " + sig);
+        System.out.println("[DEBUG] 계산된 sig: " + expectedSig);
+        if (expectedSig == null || !expectedSig.equals(sig)) {
+            System.err.println("서명 불일치! ID: " + id + ", Expected: " + expectedSig + ", Received: " + sig);
+            throw new SecurityException("유효하지 않은 보안 토큰입니다.");
+        }
+
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String dbPath = getPrimaryImagePath(notice);
+
+        if (dbPath == null) return null;
+
+        return loadResourceFromPath(dbPath);
+    }
+
+    // [내부 헬퍼] 이미지 경로 추출
+    private String getPrimaryImagePath(Notice notice) {
+        List<String> images = notice.getContentImages();
+
+        if (images != null && !images.isEmpty()) {
+            return images.get(0);
+        }
+
+        return null; // 이미지가 없는 경우
+    }
+
+    // [내부 헬퍼] 물리적 리소스 로드 (내부 파일 vs 외부 URL)
+    private Resource loadResourceFromPath(String dbPath) {
+        if (dbPath.startsWith("http")) {
+            try { return new UrlResource(dbPath); } catch (Exception e) { return null; }
+        }
+
+        try {
+            String fileName = dbPath.replace("/uploads/", "");
+            Path filePath = Paths.get(UPLOAD_ROOT).resolve(fileName).normalize();
+            if (!filePath.startsWith(Paths.get(UPLOAD_ROOT))) return null;
+
+            Resource resource = new FileSystemResource(filePath);
+            return (resource.exists() && resource.isReadable()) ? resource : null;
+        } catch (Exception e) { return null; }
+    }
+
+    // [보안] HMAC-SHA256 서명 생성
+    public String generateSignature(String data) {
+        try {
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            sha256_HMAC.init(secret_key);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(sha256_HMAC.doFinal(data.getBytes()));
+        } catch (Exception e) {
+            throw new RuntimeException("서명 생성 실패", e);
+        }
     }
 }
