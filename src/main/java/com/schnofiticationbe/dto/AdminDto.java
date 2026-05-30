@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AdminDto {
 
@@ -102,7 +104,7 @@ public class AdminDto {
         private String name;
         private Admin.Affiliation affiliation;
         private Set<Category> categories;
-        private Set<Department> departments;
+        private List<DepartmentSummary> departments;
         private Set<TargetYear> grades;
 
         public AdminUserResponse(Admin admin) {
@@ -111,7 +113,11 @@ public class AdminDto {
             this.name = admin.getName();
             this.affiliation = admin.getAffiliation();
             this.categories = admin.getCategories();
-            this.departments = admin.getDepartments();
+            this.departments = admin.getDepartments() != null
+                    ? admin.getDepartments().stream()
+                        .map(DepartmentSummary::from)
+                        .collect(Collectors.toList())
+                    : List.of();
             this.grades = admin.getGrades();
         }
     }

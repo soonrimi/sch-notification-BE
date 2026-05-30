@@ -11,6 +11,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -291,7 +293,7 @@ public class AdminService {
         String userIdInToken=jwtToken.getName();
         Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
-        System.out.println("현재 관리자: " + getCurrentAdmin.getUserId());
+        log.debug("현재 관리자: {}", getCurrentAdmin.getUserId());
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
         return notices.stream().map(InternalNoticeDto.InternalNoticeListResponse::new).toList();
     }

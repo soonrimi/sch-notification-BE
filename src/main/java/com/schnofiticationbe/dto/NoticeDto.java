@@ -23,7 +23,8 @@ public class NoticeDto {
      * 공지 목록 조회 시 사용되는 간결한 응답 DTO입니다.
      */
     @Getter
-    @Schema(requiredProperties = {"id", "title", "createdAt", "viewCount", "writer", "content", "noticeType", "categoryName"})
+    @Schema(requiredProperties = { "id", "title", "createdAt", "viewCount", "writer", "content", "noticeType",
+            "categoryName" })
     public static class ListResponse {
         private final Long id;
         private final String title;
@@ -50,7 +51,8 @@ public class NoticeDto {
      * 단일 공지 상세 조회 시 사용되는 모든 정보를 포함하는 응답 DTO입니다.
      */
     @Getter
-    @Schema(requiredProperties = {"id", "title", "content", "writer", "createdAt", "viewCount", "categoryName", "noticeType", "targetYear", "targetDept", "attachments"})
+    @Schema(requiredProperties = { "id", "title", "content", "writer", "createdAt", "viewCount", "categoryName",
+            "noticeType", "targetYear", "targetDept", "attachments" })
     public static class DetailResponse {
         private final Long id;
         private final String title;
@@ -61,7 +63,7 @@ public class NoticeDto {
         private final String categoryName;
         private final NoticeType noticeType;
         private final TargetYear targetYear; // InternalNotice 전용
-        private final Set<Department> targetDept; // InternalNotice 전용
+        private final List<DepartmentSummary> targetDept; // InternalNotice 전용
         private final List<AttachmentResponse> attachments;
         private final List<String> contentImages; // CrawlPosts 전용
         private String ogImageUrl;
@@ -73,7 +75,7 @@ public class NoticeDto {
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
             this.categoryName = notice.getCategory() != null ? notice.getCategory().getDescription() : "미분류";
-            this.ogImageUrl= ogImageUrl;
+            this.ogImageUrl = ogImageUrl;
 
             this.attachments = notice.getAttachments().stream()
                     .map(AttachmentResponse::new)
@@ -86,21 +88,25 @@ public class NoticeDto {
                 }
                 this.noticeType = NoticeType.INTERNAL;
                 this.targetYear = internalNotice.getTargetYear();
-                this.targetDept = internalNotice.getTargetDept();
+                this.targetDept = internalNotice.getTargetDept() != null
+                        ? internalNotice.getTargetDept().stream()
+                                .map(DepartmentSummary::from)
+                                .collect(Collectors.toList())
+                        : Collections.emptyList();
                 this.contentImages = Collections.emptyList();
 
             } else if (notice instanceof CrawlPosts crawlPosts) {
                 this.writer = crawlPosts.getWriter();
                 this.noticeType = NoticeType.CRAWL;
                 this.targetYear = null;
-                this.targetDept = Collections.emptySet();
+                this.targetDept = Collections.emptyList();
                 this.contentImages = crawlPosts.getContentImages();
 
             } else {
                 this.writer = "알 수 없음";
                 this.noticeType = null;
                 this.targetYear = null;
-                this.targetDept = Collections.emptySet();
+                this.targetDept = Collections.emptyList();
                 this.contentImages = Collections.emptyList();
             }
         }
@@ -110,7 +116,7 @@ public class NoticeDto {
      * 첨부파일 정보를 담는 공통 DTO입니다.
      */
     @Getter
-    @Schema(requiredProperties = {"id", "fileName", "fileUrl"})
+    @Schema(requiredProperties = { "id", "fileName", "fileUrl" })
     public static class AttachmentResponse {
         private final Long id;
         private final String fileName;
@@ -130,4 +136,3 @@ public class NoticeDto {
     }
 
 }
-
