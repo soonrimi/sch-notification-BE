@@ -9,6 +9,7 @@ import com.schnofiticationbe.entity.TargetYear;
 import com.schnofiticationbe.service.NoticeService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RestController
 @RequestMapping("/notice")
 @RequiredArgsConstructor
@@ -109,7 +111,7 @@ public class CrawlPostController {
     public ResponseEntity<Resource> getThumbnail(
             @PathVariable Long id,
             @RequestParam("sig") String sig) {
-        System.out.println(">>> 컨트롤러 진입 성공! ID: " + id);
+        log.debug("OG 이미지 조회 요청 - ID: {}", id);
 
         try {
             Resource file = noticeService.getOgImageById(id, sig);

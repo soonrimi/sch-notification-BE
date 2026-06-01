@@ -43,6 +43,13 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("io.github.cdimascio:java-dotenv:5.2.2")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
+    
+    // 재시도 및 서킷 방어
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    
+    // 트래픽 제어 (Rate Limiting)
+    implementation("com.bucket4j:bucket4j-core:8.10.1")
 }
 
 tasks.withType<Test> {
