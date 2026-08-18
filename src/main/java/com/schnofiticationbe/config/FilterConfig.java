@@ -9,7 +9,6 @@ public class FilterConfig {
     //LoggingInterceptor가 제 기능을 할 수 있도록 사전 작업을 해주는 필터들을 등록
 
     /// RequestWrapperFilter: 요청 본문을 여러 번 읽을 수 있도록 래핑
-
     public FilterRegistrationBean<RequestWrapperFilter> requestWrapperFilter() {
         FilterRegistrationBean<RequestWrapperFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new RequestWrapperFilter());

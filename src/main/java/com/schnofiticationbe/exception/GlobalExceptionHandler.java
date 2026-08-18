@@ -50,7 +50,8 @@ public class GlobalExceptionHandler {
         }
 
         if (isServerError) {
-            sendDiscordAlert("🚨 ResponseStatusException (5xx)", e, request, traceId);
+            String title = "🚨 ResponseStatusException (" + e.getStatusCode().value() + ")";
+            sendDiscordAlert(title, e, request, traceId);
         }
 
         HttpStatus resolvedStatus = HttpStatus.resolve(e.getStatusCode().value());

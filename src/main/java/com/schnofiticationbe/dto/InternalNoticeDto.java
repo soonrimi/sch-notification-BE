@@ -55,6 +55,14 @@ public class InternalNoticeDto {
 
 
 
+    // 프론트엔드 호환성을 위해 writer 객체 형태를 유지하되 필요한 필드만 노출하는 DTO
+    @Getter
+    @AllArgsConstructor
+    public static class WriterSummary {
+        private String userId;
+        private String name;
+    }
+
     // 응답용 DTO
     @Getter
     @Setter
@@ -66,13 +74,12 @@ public class InternalNoticeDto {
         private long id;
         private String title;
         private String content;
-        private Admin writer;
+        private WriterSummary writer;
         private Timestamp createdAt;
         private Integer viewCount;
-        private String writerName;
         private Category category;
         private TargetYear targetYear;
-        private Set<Department> targetDept;
+        private List<DepartmentSummary> targetDept;
         private NoticeType noticeType;
         private List<NoticeDto.AttachmentResponse> attachments;
 
@@ -80,12 +87,17 @@ public class InternalNoticeDto {
             this.id = notice.getId();
             this.title = notice.getTitle();
             this.content = notice.getContent();
-            this.writer = notice.getWriter();
+            this.writer = notice.getWriter() != null 
+                    ? new WriterSummary(notice.getWriter().getUserId(), notice.getWriter().getName()) 
+                    : new WriterSummary(null, "관리자");
             this.createdAt = notice.getCreatedAt();
             this.viewCount = notice.getViewCount();
-            this.writerName = notice.getWriter().getName();
             this.targetYear = notice.getTargetYear();
-            this.targetDept = notice.getTargetDept();
+            this.targetDept = notice.getTargetDept() != null
+                    ? notice.getTargetDept().stream()
+                        .map(d -> new DepartmentSummary(d.getId(), d.getName()))
+                        .collect(Collectors.toList())
+                    : List.of();
             this.category = notice.getCategory();
             this.noticeType = NoticeType.INTERNAL;
             this.attachments = notice.getAttachments().stream()

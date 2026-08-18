@@ -7,6 +7,7 @@ import com.schnofiticationbe.config.CustomHttpResponseWrapper;
 import com.schnofiticationbe.config.LogContextHolder;
 import com.schnofiticationbe.entity.Log;
 import com.schnofiticationbe.entity.LogLevel;
+import com.schnofiticationbe.service.DiscordService;
 import com.schnofiticationbe.service.LogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
     private final ObjectMapper objectMapper;
     private final LogService logService;
     private final LogContextHolder logContextHolder;
+    private final DiscordService discordService;
 
     /// 컨트롤러 실행 전에 호출되어 '로그 기록지'를 초기화, 파일에 요청 요약 로깅
     @Override
@@ -98,6 +100,22 @@ public class LoggingInterceptor implements HandlerInterceptor {
             if (finalLogLevel == LogLevel.WARN || finalLogLevel == LogLevel.ERROR) {
                 logBuilder.httpStatus(res.getStatus()).durationMs(duration);
                 logService.saveLog(logBuilder.build());
+            }
+
+            // GlobalExceptionHandler에서 이미 알림을 보내지 않은 경우에만 5xx 알림 발송
+            // (중복 방지: GlobalExceptionHandler가 알림을 보내면 MDC에 "discordAlertSent" 플래그를 설정)
+            int status = res.getStatus();
+            boolean alreadySent = "true".equals(MDC.get("discordAlertSent"));
+            if (!alreadySent && status >= 500) {
+                String traceId = MDC.get("traceId") != null ? MDC.get("traceId").substring(0, 8) : "unknown";
+                String errorMsg = (ex != null ? ex.getMessage() : "No exception — 응답 코드 " + status);
+                String title = switch (status) {
+                    case 502 -> "⚠️ Bad Gateway (502) — 외부 서버 또는 nginx 연결 문제";
+                    case 503 -> "🔴 Service Unavailable (503) — 서버 과부하 또는 중단";
+                    case 504 -> "⏱️ Gateway Timeout (504) — 업스트림 응답 지연";
+                    default  -> "🚨 서버 오류 (" + status + ")";
+                };
+                discordService.sendErrorAlert(title, errorMsg, req.getRequestURI(), traceId);
             }
 
         } finally {

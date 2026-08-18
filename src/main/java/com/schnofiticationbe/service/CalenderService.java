@@ -29,8 +29,18 @@ public class CalenderService {
                 .build();
     }
 
-    public List<CalenderDto.Response> getAllCalenders() {
-        List<Calender> calenderPage = calenderRepository.findAll();
+    public List<CalenderDto.Response> getAllCalenders(Integer year) {
+        if (year != null && (year < 2000 || year > 2100)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Invalid year parameter. Year must be between 2000 and 2100."
+            );
+        }
+        int targetYear = (year != null) ? year : java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).getYear();
+        String yearStart = targetYear + "-01-01";
+        String yearEnd = targetYear + "-12-31";
+
+        List<Calender> calenderPage = calenderRepository.findByYear(yearStart, yearEnd);
         return calenderPage.stream()
                 .map(this::toEntity)
                 .toList();

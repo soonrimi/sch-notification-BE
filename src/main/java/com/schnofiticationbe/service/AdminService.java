@@ -11,6 +11,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -107,14 +109,22 @@ public class AdminService {
 
 
     // 공지 생성 (InternalNotice)
-    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(Authentication jwtToken, InternalNoticeDto.CreateInternalNoticeRequest req, List<MultipartFile> files) {
-        String userIdInToken=jwtToken.getName();
+    @Transactional
+    public InternalNoticeDto.InternalNoticeListResponse createInternalNotice(
+            Authentication jwtToken,
+            InternalNoticeDto.CreateInternalNoticeRequest req,
+            List<MultipartFile> files) {
+
+        String userIdInToken = jwtToken.getName();
         Admin admin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다."));
 
         Set<Department> departments = new HashSet<>(departmentRepository.findAllById(req.getTargetDepartmentIds()));
 
         InternalNotice notice = new InternalNotice();
+        List<String> imagePaths = new ArrayList<>();
+
+
         notice.setTitle(req.getTitle());
         notice.setContent(req.getContent());
         notice.setWriter(admin);
@@ -124,29 +134,28 @@ public class AdminService {
         notice.setSentToKakao(false);
         notice.setCategory(req.getCategory());
 
-        try {
-            // save를 시도합니다.
-            InternalNotice savedNotice = internalNoticeRepository.save(notice);
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (file != null && !file.isEmpty()) {
+                    String fileUrl = storeAttachment.saveFile(file);
 
-            // (성공 시 파일 처리 로직)
-            if (files != null && !files.isEmpty()) {
-                for (MultipartFile file : files) {
-                    if (!file.isEmpty()) {
-                        String fileUrl = storeAttachment.saveFile(file);
-                        Attachment attachment = new Attachment();
-                        attachment.setFileName(file.getOriginalFilename());
-                        attachment.setFileUrl(fileUrl);
-                        attachment.setAttachmentType(NoticeType.INTERNAL);
-                        savedNotice.addAttachment(attachment);
+                    Attachment attachment = new Attachment();
+                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setFileUrl(fileUrl);
+                    attachment.setAttachmentType(NoticeType.INTERNAL);
+                    notice.addAttachment(attachment);
+
+                    String fileName = file.getOriginalFilename().toLowerCase();
+                    if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".png")) {
+                        imagePaths.add(fileUrl);
                     }
                 }
-                savedNotice = internalNoticeRepository.save(savedNotice);
             }
-            return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
-
-        } catch (Exception e) {
-            throw e;
         }
+        notice.setContentImages(imagePaths);
+
+        InternalNotice savedNotice = internalNoticeRepository.save(notice);
+        return new InternalNoticeDto.InternalNoticeListResponse(savedNotice);
     }
 
     private String buildVerifyLink(String email, String token) {
@@ -284,7 +293,7 @@ public class AdminService {
         String userIdInToken=jwtToken.getName();
         Admin getCurrentAdmin = adminRepository.findByUserId(userIdInToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
-        System.out.println("현재 관리자: " + getCurrentAdmin.getUserId());
+        log.debug("현재 관리자: {}", getCurrentAdmin.getUserId());
         List<InternalNotice> notices = internalNoticeRepository.findByWriter(getCurrentAdmin);
         return notices.stream().map(InternalNoticeDto.InternalNoticeListResponse::new).toList();
     }

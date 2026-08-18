@@ -25,10 +25,6 @@ public class CrawlPosts extends Notice {
     @Column()
     private String source; // 공지 출처 (예: 학교 홈페이지, 특정 게시판 등)
 
-    @Convert(converter = JsonStringListConverter.class)
-    @Column(name = "content_images", columnDefinition = "LONGTEXT")
-    private List<String> contentImages;
-
     @Override
     public String getWriterName() {
         return this.writer != null ? this.writer : "정보 없음";
