@@ -56,6 +56,7 @@ jobs:
 
             ADMIN_REGISTER_PASSWORD=${{ secrets.ADMIN_REGISTER_PASSWORD }}
             DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+            FCM_SERVER_KEY=${{ secrets.FCM_SERVER_KEY }}
 
             EOF
 

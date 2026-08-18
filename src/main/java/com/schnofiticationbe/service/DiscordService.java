@@ -13,32 +13,53 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class DiscordService {
+
+    private final RestTemplate restTemplate;
 
     @Value("${discord.webhook.url}") // application.properties에 URL 등록
     private String webhookUrl;
 
-    // 공통 전송 메서드 (내부 사용)
     private void sendToDiscord(Map<String, Object> requestMap) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+        org.springframework.retry.support.RetryTemplate retryTemplate = org.springframework.retry.support.RetryTemplate.builder()
+                .maxAttempts(3)
+                .fixedBackoff(1000)
+                .build();
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestMap, headers);
-            restTemplate.postForEntity(webhookUrl, entity, String.class);
+        try {
+            retryTemplate.execute(context -> {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestMap, headers);
+                restTemplate.postForEntity(webhookUrl, entity, String.class);
+                return null;
+            });
         } catch (Exception e) {
-            log.error("디스코드 전송 실패", e);
+            log.error("디스코드 전송 최종 실패 (재시도 초과): {}", e.getMessage(), e);
         }
     }
 
-    // 2. [조건 1] 500 에러 알림 (비동기)
+    // 2. [조건 1] 서버 에러 알림 (비동기)
     @Async
     public void sendErrorAlert(String title, String errorMessage, String path, String traceId) {
         Map<String, Object> requestMap = new HashMap<>();
-        requestMap.put("content", "🚨 **서버 오류 발생 (500)**");
+        
+        // title에서 상태 코드를 추출하여 강조 표시 (예: "⚠️ Bad Gateway (502)..." -> "502")
+        String contentHeader = "🚨 **서버 오류 발생**";
+        if (title != null) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\((\\d{3})\\)").matcher(title);
+            if (matcher.find()) {
+                contentHeader = "🚨 **서버 오류 발생 (" + matcher.group(1) + ")**";
+            }
+        }
+
+        requestMap.put("content", contentHeader);
 
         Map<String, String> embed = new HashMap<>();
         embed.put("title", title);

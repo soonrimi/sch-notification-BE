@@ -9,15 +9,19 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import java.sql.Timestamp;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +36,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
@@ -58,47 +62,63 @@ public class NoticeService {
         Map<Long, String> deptIdToNameMap = departmentRepository.findAllById(requestedDeptIds).stream()
                 .collect(Collectors.toMap(Department::getId, Department::getName));
         List<String> targetDeptNames = new ArrayList<>(deptIdToNameMap.values());
-        Specification<Notice> spec = (root, query, criteriaBuilder) -> {
-            query.distinct(true);
 
-            Root<InternalNotice> internalRoot = criteriaBuilder.treat(root, InternalNotice.class);
-            Root<CrawlPosts> crawlRoot = criteriaBuilder.treat(root, CrawlPosts.class);
-            Join<InternalNotice, Department> deptJoin = internalRoot.join("targetDept", JoinType.LEFT);
+        List<Object[]> matchedRows = new ArrayList<>();
 
-            List<Category> generalCategories = List.of(
-                    Category.UNIVERSITY, Category.RECRUIT, Category.ACTIVITY, Category.PROMOTION
-            );
-            List<Category> targetedCategories = List.of(
-                    Category.DEPARTMENT, Category.GRADE
-            );
-
-            Predicate isGeneral = root.get("category").in(generalCategories);
-            Predicate isTargetCat = root.get("category").in(targetedCategories);
-
-            Predicate matchInternalRule = criteriaBuilder.disjunction();
-            for (DeptYearBundle bundle : bundles) {
-                Predicate deptEq = criteriaBuilder.equal(deptJoin.get("id"), bundle.getDepartmentId());
-                Predicate yearEq = criteriaBuilder.or(
-                        criteriaBuilder.equal(internalRoot.get("targetYear"), bundle.getTargetYear()),
-                        criteriaBuilder.equal(internalRoot.get("targetYear"), TargetYear.ALL_YEARS)
-                );
-                matchInternalRule = criteriaBuilder.or(matchInternalRule, criteriaBuilder.and(deptEq, yearEq));
+        // 1단계: bundles에 매칭되는 InternalNotice ID & Date 목록 추출
+        for (DeptYearBundle bundle : bundles) {
+            List<Object[]> rows = noticeRepository.findInternalNoticeIdsAndDateByBundle(bundle.getDepartmentId(), bundle.getTargetYear().ordinal());
+            if (rows != null) {
+                matchedRows.addAll(rows);
             }
-            Predicate matchCrawlRule = criteriaBuilder.disjunction();
-            if (!targetDeptNames.isEmpty()) {
-                matchCrawlRule = crawlRoot.get("source").in(targetDeptNames);
+        }
+
+        // 2단계: 학과 이름에 속하는 CrawlPosts ID & Date 목록 추출
+        if (!targetDeptNames.isEmpty()) {
+            List<Object[]> rows = noticeRepository.findCrawlPostIdsAndDateBySources(targetDeptNames);
+            if (rows != null) {
+                matchedRows.addAll(rows);
             }
+        }
 
-            Predicate validTargeted = criteriaBuilder.and(
-                    isTargetCat,
-                    criteriaBuilder.or(matchInternalRule, matchCrawlRule)
-            );
+        List<String> generalCategories = List.of(
+                Category.UNIVERSITY.name(), Category.RECRUIT.name(), Category.ACTIVITY.name(), Category.PROMOTION.name()
+        );
 
-            return criteriaBuilder.or(isGeneral, validTargeted);
-        };
+        // 3단계: 일반 공지사항 ID & Date 목록 추출
+        List<Object[]> rows = noticeRepository.findGeneralNoticeIdsAndDate(generalCategories);
+        if (rows != null) {
+            matchedRows.addAll(rows);
+        }
 
-        return noticeRepository.findAll(spec, PageUtils.toLatestOrder(pageable))
-                .map(NoticeDto.ListResponse::new);
+        // 중복 제거 및 정렬
+        Map<Long, Timestamp> uniqueNoticeMap = new HashMap<>();
+        for (Object[] row : matchedRows) {
+            Long id = (Long) row[0];
+            Timestamp createdAt = (Timestamp) row[1];
+            uniqueNoticeMap.put(id, createdAt);
+        }
+
+        List<Map.Entry<Long, Timestamp>> sortedEntries = new ArrayList<>(uniqueNoticeMap.entrySet());
+        sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        int totalElements = sortedEntries.size();
+        int startOffset = (int) pageable.getOffset();
+        int endOffset = Math.min(startOffset + pageable.getPageSize(), totalElements);
+
+        List<Long> pageIds = new ArrayList<>();
+        if (startOffset < totalElements) {
+            for (int i = startOffset; i < endOffset; i++) {
+                pageIds.add(sortedEntries.get(i).getKey());
+            }
+        }
+
+        if (pageIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(pageIds, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, totalElements).map(NoticeDto.ListResponse::new);
     }
 
     @Transactional
@@ -119,8 +139,13 @@ public class NoticeService {
 
 
     public Page<NoticeDto.ListResponse> searchNotices(String keyword, Pageable pageable) {
-        Page<Notice> pages = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, PageUtils.toLatestOrder(pageable));
-            return pages.map(NoticeDto.ListResponse::new);
+        Page<Long> idPage = noticeRepository.findIdsByTitleOrContent(keyword, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> ids = idPage.getContent();
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(ids, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
 
     public List<String> getAllDepartments() {
@@ -130,30 +155,63 @@ public class NoticeService {
                 .distinct()
                 .toList();
     }
-    //카테고리별 공지사항 조회
     public Page<NoticeDto.ListResponse> getNoticesByCategory(Category category, Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findByCategory(category, PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        Page<Long> idPage = noticeRepository.findIdsByCategory(category.name(), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> ids = idPage.getContent();
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(ids, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
 
     public Page<NoticeDto.ListResponse> getAllNotices(Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findAll(PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        Page<Long> idPage = noticeRepository.findAllIds(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> ids = idPage.getContent();
+        if (ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(ids, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
 
 
     public Page<NoticeDto.ListResponse> getNoticesByIds(List<Long> ids, Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findByIdInOrderByCreatedAtDesc(ids, PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        if (ids == null || ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Long> idPage = noticeRepository.findIdsByIdIn(ids, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> pageIds = idPage.getContent();
+        if (pageIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(pageIds, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
     public Page<NoticeDto.ListResponse> searchInBookmarkedNotices(List<Long> ids, String keyword, Pageable pageable){
-        Page<Notice> postsPage = noticeRepository.findByIdAndTitleContainingOrContentContainingOrderByCreatedAtDescCustom(ids, keyword, PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        if (ids == null || ids.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Long> idPage = noticeRepository.findIdsByIdInAndKeyword(ids, keyword, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> pageIds = idPage.getContent();
+        if (pageIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(pageIds, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
 
     public Page<NoticeDto.ListResponse> getAllNoticeByDepartment(List<Long> departmentId, Pageable pageable) {
-        Page<Notice> postsPage = noticeRepository.findInternalNoticesByDepartmentOrderByCreatedAt(departmentId, PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        if (departmentId == null || departmentId.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Page<Long> idPage = noticeRepository.findInternalNoticeIdsByDepartment(departmentId, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<Long> pageIds = idPage.getContent();
+        if (pageIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(pageIds, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, idPage.getTotalElements()).map(NoticeDto.ListResponse::new);
     }
 
     public Page<NoticeDto.ListResponse> getNoticesByDepartmentAndTargetYear(List<DeptYearBundle> bundles, Pageable pageable) {
@@ -167,29 +225,52 @@ public class NoticeService {
 
         List<String> targetDeptNames = new ArrayList<>(deptIdToNameMap.values());
 
-        Specification<Notice> spec = (root, query, criteriaBuilder) -> {
-            query.distinct(true);
+        List<Object[]> matchedRows = new ArrayList<>();
 
-            Root<InternalNotice> internalRoot = criteriaBuilder.treat(root, InternalNotice.class);
-            Root<CrawlPosts> crawlRoot = criteriaBuilder.treat(root, CrawlPosts.class);
-            Join<InternalNotice, Department> deptJoin = internalRoot.join("targetDept", JoinType.LEFT);
-
-            Predicate internalTotalPredicate = criteriaBuilder.disjunction();
-
-            for (DeptYearBundle bundle : bundles) {
-                Predicate deptEq = criteriaBuilder.equal(deptJoin.get("id"), bundle.getDepartmentId());
-                Predicate yearEq = criteriaBuilder.equal(internalRoot.get("targetYear"), bundle.getTargetYear());
-
-                internalTotalPredicate = criteriaBuilder.or(internalTotalPredicate, criteriaBuilder.and(deptEq, yearEq));
+        // 1단계: 정확히 부합하는 학과/학년 매칭 InternalNotice ID & Date 추출
+        for (DeptYearBundle bundle : bundles) {
+            List<Object[]> rows = noticeRepository.findInternalNoticeIdsAndDateByExactBundle(bundle.getDepartmentId(), bundle.getTargetYear().ordinal());
+            if (rows != null) {
+                matchedRows.addAll(rows);
             }
-            Predicate crawlTotalPredicate = criteriaBuilder.disjunction();
-            if (!targetDeptNames.isEmpty()) {
-                crawlTotalPredicate = crawlRoot.get("source").in(targetDeptNames);
+        }
+
+        // 2단계: 학과 이름에 속하는 CrawlPosts ID & Date 추출 및 결합
+        if (!targetDeptNames.isEmpty()) {
+            List<Object[]> rows = noticeRepository.findCrawlPostIdsAndDateBySources(targetDeptNames);
+            if (rows != null) {
+                matchedRows.addAll(rows);
             }
-            return criteriaBuilder.or(internalTotalPredicate, crawlTotalPredicate);
-        };
-        Page<Notice> postsPage = noticeRepository.findAll(spec, PageUtils.toLatestOrder(pageable));
-        return postsPage.map(NoticeDto.ListResponse::new);
+        }
+
+        // 중복 제거 및 정렬
+        Map<Long, Timestamp> uniqueNoticeMap = new HashMap<>();
+        for (Object[] row : matchedRows) {
+            Long id = (Long) row[0];
+            Timestamp createdAt = (Timestamp) row[1];
+            uniqueNoticeMap.put(id, createdAt);
+        }
+
+        List<Map.Entry<Long, Timestamp>> sortedEntries = new ArrayList<>(uniqueNoticeMap.entrySet());
+        sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        int totalElements = sortedEntries.size();
+        int startOffset = (int) pageable.getOffset();
+        int endOffset = Math.min(startOffset + pageable.getPageSize(), totalElements);
+
+        List<Long> pageIds = new ArrayList<>();
+        if (startOffset < totalElements) {
+            for (int i = startOffset; i < endOffset; i++) {
+                pageIds.add(sortedEntries.get(i).getKey());
+            }
+        }
+
+        if (pageIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Notice> notices = noticeRepository.findNoticesByMatchedIdsOnly(pageIds, PageUtils.toLatestOrder(pageable)).getContent();
+        return new PageImpl<>(notices, pageable, totalElements).map(NoticeDto.ListResponse::new);
     }
 
     public List<Category> getCategoriesExcept(List<Category> exclusions) {
@@ -204,10 +285,9 @@ public class NoticeService {
 
     public Resource getOgImageById(Long id, String sig) {
         String expectedSig = generateSignature(String.valueOf(id));
-        System.out.println("[DEBUG] 요청된 sig: " + sig);
-        System.out.println("[DEBUG] 계산된 sig: " + expectedSig);
+        log.debug("OG 이미지 서명 검증 - ID: {}", id);
         if (expectedSig == null || !expectedSig.equals(sig)) {
-            System.err.println("서명 불일치! ID: " + id + ", Expected: " + expectedSig + ", Received: " + sig);
+            log.warn("서명 불일치! ID: {}", id);
             throw new SecurityException("유효하지 않은 보안 토큰입니다.");
         }
 
